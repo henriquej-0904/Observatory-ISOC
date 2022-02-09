@@ -2,7 +2,12 @@
 	"folders": [
 		{
 			"path": "internet.nl-python-scripts"
+		},
+		{
+			"path": "observatory.auto.update"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"java.configuration.updateBuildConfiguration": "interactive"
+	}
 }
