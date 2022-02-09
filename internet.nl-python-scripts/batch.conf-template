@@ -1,0 +1,10 @@
+[prod]
+endpoint = http://HOST:PORT/api/batch/v2/requests
+username = username
+password = password
+
+[dev]
+endpoint = http://HOST:PORT/api/batch/v2/requests
+username = username
+password = password
+
