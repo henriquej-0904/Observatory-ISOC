@@ -9,7 +9,7 @@ import observatory.tests.internetnlAPI.config.results.TestResult;
 /**
  * Represents the available operations to interact with the Internet.nl API.
  */
-public interface InternetnlAPI
+public interface InternetnlAPI extends AutoCloseable
 {
     /**
      * Submits a list of domains for testing.
