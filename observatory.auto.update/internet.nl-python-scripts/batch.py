@@ -397,7 +397,7 @@ def main():
             print('Result = {}'.format(r.status_code))
             pp.pprint(r.json())
         elif action == 'sub':
-            print('Result = {}'.format(r.status_code))
+            #print('Result = {}'.format(r.status_code))
             print(r.text)
     else:
         print('Something went wrong! (Error = {})'.format(r.status_code))
