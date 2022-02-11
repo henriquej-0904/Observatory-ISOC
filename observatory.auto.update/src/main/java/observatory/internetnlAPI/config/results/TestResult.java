@@ -1,6 +1,6 @@
-package observatory.tests.internetnlAPI.config.results;
+package observatory.internetnlAPI.config.results;
 
-import observatory.tests.internetnlAPI.config.InternetnlRequest;
+import observatory.internetnlAPI.config.InternetnlRequest;
 
 public class TestResult
 {

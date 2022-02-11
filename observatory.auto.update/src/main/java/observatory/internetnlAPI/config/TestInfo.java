@@ -1,4 +1,4 @@
-package observatory.tests.internetnlAPI.config;
+package observatory.internetnlAPI.config;
 
 /**
  * Represents information about a Test in the internet.nl API.

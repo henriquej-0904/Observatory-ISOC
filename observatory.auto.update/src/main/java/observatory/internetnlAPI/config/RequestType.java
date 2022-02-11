@@ -1,4 +1,4 @@
-package observatory.tests.internetnlAPI.config;
+package observatory.internetnlAPI.config;
 
 /**
  * The type of requests.

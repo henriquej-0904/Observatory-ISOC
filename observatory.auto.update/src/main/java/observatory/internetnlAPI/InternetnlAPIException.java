@@ -1,4 +1,4 @@
-package observatory.tests.internetnlAPI;
+package observatory.internetnlAPI;
 
 /**
  * Represents an error while executing an operation in the Internetnl API.

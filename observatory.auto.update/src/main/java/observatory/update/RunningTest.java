@@ -1,4 +1,4 @@
-package observatory.tests.update;
+package observatory.update;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,10 +6,10 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import observatory.tests.internetnlAPI.InternetnlAPI;
-import observatory.tests.internetnlAPI.InternetnlAPIException;
-import observatory.tests.internetnlAPI.config.TestInfo;
-import observatory.tests.internetnlAPI.config.results.TestResult;
+import observatory.internetnlAPI.InternetnlAPI;
+import observatory.internetnlAPI.InternetnlAPIException;
+import observatory.internetnlAPI.config.TestInfo;
+import observatory.internetnlAPI.config.results.TestResult;
 
 /**
  * A class to get information about a running Test and collect the results.

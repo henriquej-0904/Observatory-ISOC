@@ -1,4 +1,4 @@
-package observatory.tests.internetnlAPI;
+package observatory.internetnlAPI;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import observatory.tests.internetnlAPI.config.RequestType;
-import observatory.tests.internetnlAPI.config.TestInfo;
-import observatory.tests.internetnlAPI.config.results.TestResult;
+import observatory.internetnlAPI.config.RequestType;
+import observatory.internetnlAPI.config.TestInfo;
+import observatory.internetnlAPI.config.results.TestResult;
 
 /**
  * Represents an interaction with the Internet.nl API using python scripts.
@@ -116,10 +117,10 @@ public class InternetnlAPIWithPythonScripts implements InternetnlAPI
 
         while (numberTries > 0)
         {
+            String resultString = null;
             try
             {
                 Process process = builder.start();
-                String resultString = null;
 
                 try
                 (
@@ -136,6 +137,9 @@ public class InternetnlAPIWithPythonScripts implements InternetnlAPI
                 {
                     return this.mapper.readValue(resultString, valueType);
                 }
+            }
+            catch (StreamReadException e) {
+                error = new InternetnlAPIException("An error occurred calling the API.\n" + resultString);
             }
             catch (Exception e) {
                 error = new InternetnlAPIException(e);

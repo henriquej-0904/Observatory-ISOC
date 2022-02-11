@@ -1,10 +1,10 @@
-package observatory.tests.internetnlAPI;
+package observatory.internetnlAPI;
 
 import java.io.File;
 
-import observatory.tests.internetnlAPI.config.RequestType;
-import observatory.tests.internetnlAPI.config.TestInfo;
-import observatory.tests.internetnlAPI.config.results.TestResult;
+import observatory.internetnlAPI.config.RequestType;
+import observatory.internetnlAPI.config.TestInfo;
+import observatory.internetnlAPI.config.results.TestResult;
 
 /**
  * Represents the available operations to interact with the Internet.nl API.
