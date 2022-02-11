@@ -6,7 +6,9 @@ package observatory.internetnlAPI.config;
 public class InternetnlRequest
 {
     private String request_id, name, status,
-        request_type, submit_date, finished_date;
+        submit_date, finished_date;
+
+    private RequestType request_type;
 
     /**
      * 
@@ -59,14 +61,14 @@ public class InternetnlRequest
     /**
      * @return the request_type
      */
-    public String getRequest_type() {
+    public RequestType getRequest_type() {
         return request_type;
     }
 
     /**
      * @param request_type the request_type to set
      */
-    public void setRequest_type(String request_type) {
+    public void setRequest_type(RequestType request_type) {
         this.request_type = request_type;
     }
 

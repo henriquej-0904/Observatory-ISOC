@@ -1,5 +1,7 @@
 package observatory.internetnlAPI.config;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * The type of requests.
  */
@@ -20,6 +22,7 @@ public enum RequestType
     /**
      * @return the type
      */
+    @JsonValue
     public String getType() {
         return type;
     }    
