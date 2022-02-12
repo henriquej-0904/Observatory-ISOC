@@ -1,5 +1,10 @@
 package observatory.internetnlAPI.config.results.domain;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import observatory.internetnlAPI.config.RequestType;
@@ -88,6 +93,9 @@ public enum Test
 
     //#endregion
 
+
+    private static Map<RequestType, List<Test>> valuesByType;
+
     private String test, description;
 
     private RequestType type;
@@ -119,5 +127,31 @@ public enum Test
      */
     public RequestType getType() {
         return type;
+    }
+
+    public static List<Test> values(RequestType type)
+    {
+        if (valuesByType == null)
+        {
+            Test[] values = values();
+            
+            valuesByType = Stream.of(RequestType.values())
+                .map((t) -> Map.entry(t, filterByType(values, t)))
+                .collect(Collectors.toUnmodifiableMap
+                    (
+                        (entry) -> entry.getKey(),
+                        (entry) -> entry.getValue()
+                    )
+                );
+        }
+
+        return valuesByType.get(type);
+    }
+
+    private static List<Test> filterByType(Test[] values, RequestType type)
+    {
+        return Stream.of(values)
+            .filter((value) -> value.getType() == type)
+            .collect(Collectors.toUnmodifiableList());
     }
 }
