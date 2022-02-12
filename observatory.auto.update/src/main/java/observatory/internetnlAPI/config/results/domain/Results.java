@@ -11,7 +11,7 @@ public class Results
 
     private Map<Test, Result> tests;
 
-    private CustomResults custom;
+    private Map<CustomTest, Object> custom;
 
     /**
      * 
@@ -52,14 +52,14 @@ public class Results
     /**
      * @return the custom
      */
-    public CustomResults getCustom() {
+    public Map<CustomTest, Object> getCustom() {
         return custom;
     }
 
     /**
      * @param custom the custom to set
      */
-    public void setCustom(CustomResults custom) {
+    public void setCustom(Map<CustomTest, Object> custom) {
         this.custom = custom;
     }
 

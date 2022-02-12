@@ -8,7 +8,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum RequestType
 {
     WEB ("web"),
-    MAIL ("mail");
+    MAIL ("mail"),
+    ALL ("all");
 
     private String type;
 

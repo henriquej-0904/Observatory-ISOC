@@ -11,25 +11,25 @@ public enum ResultStatus
     STATUS_FAIL ("failed"),
     STATUS_NOTICE ("warning"),
     STATUS_INFO ("info"),
-    STATUS_NOT_TESTED ("not-tested"),
+    STATUS_NOT_TESTED ("not_tested"),
     STATUS_SUCCESS ("passed");
     
     
-    private String description;
+    private String status;
 
-    private ResultStatus(String description)
+    private ResultStatus(String status)
     {
-        this.description = description;
+        this.status = status;
     }
 
     @JsonValue
     /**
-     * Get the description of this status.
+     * Get status.
      * @return
      */
-    public String getDescription()
+    public String getStatus()
     {
-        return this.description;
+        return this.status;
     }
     
 }
