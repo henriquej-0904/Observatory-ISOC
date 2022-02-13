@@ -1,12 +1,12 @@
 package observatory.util;
 
-import com.gembox.spreadsheet.SpreadsheetInfo;
+//import com.gembox.spreadsheet.SpreadsheetInfo;
 
 public class Util
 {
-    static
+    /* static
     {
         // Init Excel Library
         SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
-    }
+    } */
 }

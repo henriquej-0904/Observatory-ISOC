@@ -96,6 +96,9 @@ public class TestDomains
      */
     public void Start() throws InternetnlAPIException, IOException
     {
+        this.webResults.mkdirs();
+        this.mailResults.mkdirs();
+
         for (String list : this.listsOfDomains)
         {
             testList(list, RequestType.WEB);
@@ -104,7 +107,7 @@ public class TestDomains
     }
 
     /**
-     * TStart testing.
+     * Start testing.
      * 
      * @param type - The type of test to perform.
      * 
@@ -113,6 +116,11 @@ public class TestDomains
      */
     public void Start(RequestType type) throws InternetnlAPIException, IOException
     {
+        if (type == RequestType.WEB)
+            this.webResults.mkdirs();
+        else
+            this.mailResults.mkdirs();
+
         for (String list : this.listsOfDomains)
             testList(list, type);
     }
