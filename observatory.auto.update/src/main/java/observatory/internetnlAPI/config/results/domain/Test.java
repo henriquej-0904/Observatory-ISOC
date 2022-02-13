@@ -151,7 +151,7 @@ public enum Test
     private static List<Test> filterByType(Test[] values, RequestType type)
     {
         return Stream.of(values)
-            .filter((value) -> type == RequestType.ALL || value.getType() == type)
+            .filter((value) -> value.getType() == type)
             .collect(Collectors.toUnmodifiableList());
     }
 }

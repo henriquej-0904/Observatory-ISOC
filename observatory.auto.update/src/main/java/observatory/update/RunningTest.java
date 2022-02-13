@@ -19,7 +19,7 @@ public class RunningTest
     /**
      * The timeout to wait for test result.
      */
-    private static final long TIMEOUT_MILLIS = 15 * 1000;
+    private static final long TIMEOUT_MILLIS = 30 * 1000;
 
 
     private InternetnlAPI api;

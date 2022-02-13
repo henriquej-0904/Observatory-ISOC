@@ -22,6 +22,7 @@ public class InternetnlAPIWithPythonScripts implements InternetnlAPI
 {
     
     private static final int MAX_TRIES = 3;
+    private static final int TIMEOUT = 15 * 1000;
 
     private static final int SUCCESS_EXIT_STATUS = 0;
 
@@ -135,7 +136,10 @@ public class InternetnlAPIWithPythonScripts implements InternetnlAPI
                     error = new InternetnlAPIException("An error occurred calling the API.\n" + resultString);
                 else
                 {
-                    return this.mapper.readValue(resultString, valueType);
+                    T result = this.mapper.readValue(resultString, valueType);
+                    error = null;
+
+                    return result;
                 }
             }
             catch (StreamReadException e) {
@@ -146,7 +150,13 @@ public class InternetnlAPIWithPythonScripts implements InternetnlAPI
             }
 
             if (error != null)
+            {
                 numberTries--;
+
+                try {
+                    Thread.sleep(TIMEOUT);
+                } catch (Exception e) {}
+            }
         }
 
         throw error;
