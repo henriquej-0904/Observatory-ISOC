@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import com.gembox.spreadsheet.ExcelFile;
-import com.gembox.spreadsheet.ExcelWorksheetCollection;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import observatory.internetnlAPI.InternetnlAPI;
 import observatory.internetnlAPI.InternetnlAPIException;
@@ -19,7 +19,7 @@ import observatory.internetnlAPI.config.RequestType;
  */
 public class TestDomains
 {
-    private static Logger log = Logger.getLogger(TestDomains.class.getName());
+    private static Logger log = Logger.getLogger(TestDomains.class.getSimpleName());
 
     private final File domains, webResults, mailResults;
 
@@ -42,14 +42,25 @@ public class TestDomains
         this.webResults = new File(resultsFolder, "web");
         this.mailResults = new File(resultsFolder, "mail");
 
-        ExcelFile domainsExcel = ExcelFile.load(domains.getPath());
-        ExcelWorksheetCollection worksheets = domainsExcel.getWorksheets();
-        
-        if (worksheets.size() == 0)
+        try
+        (
+            XSSFWorkbook domainsExcel = new XSSFWorkbook(domains);
+        )
+        {
+            if (domainsExcel.getNumberOfSheets() == 0)
             throw new IllegalArgumentException("There is no domains to test.");
 
-        this.listsOfDomains = new ArrayList<>(worksheets.size());
-        worksheets.forEach((worksheet) -> this.listsOfDomains.add(worksheet.getName()));
+            this.listsOfDomains = new ArrayList<>(domainsExcel.getNumberOfSheets());
+
+            for (Sheet sheet : domainsExcel)
+                this.listsOfDomains.add(sheet.getSheetName());
+
+        } catch (IOException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
 
         this.api = Objects.requireNonNull(api);
     }
@@ -71,17 +82,26 @@ public class TestDomains
         this.webResults = new File(resultsFolder, "web");
         this.mailResults = new File(resultsFolder, "mail");
 
-        ExcelFile domainsExcel = ExcelFile.load(domains.getPath());
-        ExcelWorksheetCollection worksheets = domainsExcel.getWorksheets();
-        
-        if (worksheets.size() == 0)
-            throw new IllegalArgumentException("There is no domains to test.");
+        try
+        (
+            XSSFWorkbook domainsExcel = new XSSFWorkbook(domains);
+        )
+        {
+            if (domainsExcel.getNumberOfSheets() == 0)
+                throw new IllegalArgumentException("There is no domains to test.");
 
-        for (String list : Objects.requireNonNull(listsOfDomains)) {
-            if (!worksheets.contains(list))
-                throw new IllegalArgumentException(
-                    String.format("There is no list named %s in the specified domains file.", list)
-                );
+            for (String list : Objects.requireNonNull(listsOfDomains)) {
+                if (domainsExcel.getSheet(list) == null)
+                    throw new IllegalArgumentException(
+                        String.format("There is no list named %s in the specified domains file.", list)
+                    );
+            }
+
+        } catch (IOException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
         }
 
         this.listsOfDomains = List.copyOf(listsOfDomains);
@@ -91,18 +111,20 @@ public class TestDomains
     /**
      * Start testing.
      * 
+     * @param overwrite - True to test the list if it was already tested.
+     * 
      * @throws InternetnlAPIException
      * @throws IOException
      */
-    public void Start() throws InternetnlAPIException, IOException
+    public void Start(boolean overwrite) throws InternetnlAPIException, IOException
     {
         this.webResults.mkdirs();
         this.mailResults.mkdirs();
 
         for (String list : this.listsOfDomains)
         {
-            testList(list, RequestType.WEB);
-            testList(list, RequestType.MAIL);
+            testList(list, RequestType.WEB, overwrite);
+            testList(list, RequestType.MAIL, overwrite);
         }
     }
 
@@ -110,11 +132,12 @@ public class TestDomains
      * Start testing.
      * 
      * @param type - The type of test to perform.
+     * @param overwrite - True to test the list if it was already tested.
      * 
      * @throws InternetnlAPIException
      * @throws IOException
      */
-    public void Start(RequestType type) throws InternetnlAPIException, IOException
+    public void Start(RequestType type, boolean overwrite) throws InternetnlAPIException, IOException
     {
         if (type == RequestType.WEB)
             this.webResults.mkdirs();
@@ -122,7 +145,7 @@ public class TestDomains
             this.mailResults.mkdirs();
 
         for (String list : this.listsOfDomains)
-            testList(list, type);
+            testList(list, type, overwrite);
     }
 
     /**
@@ -130,20 +153,30 @@ public class TestDomains
      * 
      * @param list - The name of the list
      * @param type - The type of test.
+     * @param overwrite - True to test the list if it was already tested.
      * 
      * @throws InternetnlAPIException
      * @throws IOException
      */
-    private void testList(String list, RequestType type) throws InternetnlAPIException, IOException
+    private void testList(String list, RequestType type, boolean overwrite)
+        throws InternetnlAPIException, IOException
     {
         try
         {
-            log.info(String.format("Starting %s test on list %s", type.getType(), list));
-            startTest(list, type).dump();
-            log.info(String.format("Finished %s test on list %s", type.getType(), list));
+            File results = createResultFile(list, type);
+
+            if (overwrite || !results.exists())
+            {
+                log.info(String.format("Starting %s test on list %s", type.getType(), list));
+                startTest(list, type, results).dump();
+                log.info(String.format("Finished %s test on list %s", type.getType(), list));
+            }
+            else
+                log.info(String.format("Already tested list %s of type %s", list, type.getType()));
         } catch (Exception e) {
-            log.severe(String.format("An error occurred during %s test on list %s.\n%s",
-                type.getType(), list, e.getMessage()));
+            log.severe(String.format("An error occurred during %s test on list %s.",
+                type.getType(), list));
+            throw e;
         }
     }
 
@@ -152,15 +185,16 @@ public class TestDomains
      * 
      * @param list - The name of the list
      * @param type - The type of test.
+     * @param results - The file to store the results of the test.
      * 
      * @return A new test.
      * @throws InternetnlAPIException
      */
-    private RunningTest startTest(String list, RequestType type) throws InternetnlAPIException
+    private RunningTest startTest(String list, RequestType type, File results) throws InternetnlAPIException
     {
         return new RunningTest(
             this.api.submit(this.domains, list, type).getRequest().getRequest_id(),
-            createResultFile(list, type),
+            results,
             this.api);
     }
 
