@@ -13,6 +13,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import observatory.internetnlAPI.InternetnlAPI;
 import observatory.internetnlAPI.InternetnlAPIException;
 import observatory.internetnlAPI.config.RequestType;
+import observatory.util.Util;
 
 /**
  * A class to test the domains in a set of lists.
@@ -39,8 +40,8 @@ public class TestDomains
     {
         this.domains = domains;
         Objects.requireNonNull(resultsFolder);
-        this.webResults = new File(resultsFolder, "web");
-        this.mailResults = new File(resultsFolder, "mail");
+        this.webResults = Util.getResultsFolder(resultsFolder, RequestType.WEB);
+        this.mailResults = Util.getResultsFolder(resultsFolder, RequestType.MAIL);
 
         try
         (
@@ -79,8 +80,8 @@ public class TestDomains
     {
         this.domains = domains;
         Objects.requireNonNull(resultsFolder);
-        this.webResults = new File(resultsFolder, "web");
-        this.mailResults = new File(resultsFolder, "mail");
+        this.webResults = Util.getResultsFolder(resultsFolder, RequestType.WEB);
+        this.mailResults = Util.getResultsFolder(resultsFolder, RequestType.MAIL);
 
         try
         (
