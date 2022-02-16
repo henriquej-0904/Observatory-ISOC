@@ -1,5 +1,10 @@
 package observatory.internetnlAPI.config.results.domain;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import observatory.internetnlAPI.config.RequestType;
@@ -18,6 +23,8 @@ public enum Category
     MAIL_DNSSEC ("mail_dnssec", "Signed domain name (DNSSEC)", RequestType.MAIL),
     MAIL_AUTH ("mail_auth", "Authenticity marks against phishing (DMARC, DKIM en SPF)", RequestType.MAIL),
     MAIL_STARTTLS ("mail_starttls", "Secure mail server connection (STARTTLS and DANE)", RequestType.MAIL);
+
+    private static Map<RequestType, List<Category>> valuesByType;
 
     private String category, description;
 
@@ -50,5 +57,31 @@ public enum Category
      */
     public RequestType getType() {
         return type;
-    }    
+    }
+    
+    public static List<Category> values(RequestType type)
+    {
+        if (valuesByType == null)
+        {
+            Category[] values = values();
+            
+            valuesByType = Stream.of(RequestType.values())
+                .map((t) -> Map.entry(t, filterByType(values, t)))
+                .collect(Collectors.toUnmodifiableMap
+                    (
+                        (entry) -> entry.getKey(),
+                        (entry) -> entry.getValue()
+                    )
+                );
+        }
+
+        return valuesByType.get(type);
+    }
+
+    private static List<Category> filterByType(Category[] values, RequestType type)
+    {
+        return Stream.of(values)
+            .filter((value) -> value.getType() == type)
+            .collect(Collectors.toUnmodifiableList());
+    }
 }
