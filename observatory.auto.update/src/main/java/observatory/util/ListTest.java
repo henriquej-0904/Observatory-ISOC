@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.commons.io.FilenameUtils;
+
 import observatory.internetnlAPI.config.results.TestResult;
 
 /**
@@ -29,7 +31,7 @@ public class ListTest
     {
         try
         {
-            this.name = results.getName();
+            this.name = FilenameUtils.removeExtension(results.getName());
             this.results = new ObjectMapper().readValue(results, TestResult.class);
         } catch (IOException e) {
             throw e;

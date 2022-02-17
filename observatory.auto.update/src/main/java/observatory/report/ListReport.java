@@ -179,7 +179,7 @@ public class ListReport
         if (type == RequestType.WEB)
             return;
 
-        setExtraFieldMailSendingDomain(report, custom.get(CustomTest.MAIL_SENDING_DOMAIN));
+        setExtraFieldMailSendingDomain(report, custom.get(CustomTest.MAIL_NON_SENDING_DOMAIN));
         setExtraFieldMailServersTestable(report, custom.get(CustomTest.MAIL_SERVER_TESTABLE));
     }
 
@@ -203,10 +203,24 @@ public class ListReport
         cell.setCellValue(value + 1);
     }
 
+    /**
+     * Sets the extra field mail sending domain.
+     * As specified in CustomTest.MAIL_NON_SENDING_DOMAIN documentation,
+     * the result of this test should be negated to avoid confusion.
+     * 
+     * @param report
+     * @param result
+     * 
+     * @see CustomTest
+     */
     private static void setExtraFieldMailSendingDomain(Sheet report, Object result)
     {
         Cell cell;
-        if ((Boolean)result)
+
+        /**
+         * Negate the result
+         */
+        if (!(Boolean)result)
             cell = report.getRow(ADDRESS_RESULT.get(ResultStatus.STATUS_SUCCESS).getRow())
                     .getCell(ADDRESS_EXTRA_FIELD_MAIL_SENDING_DOMAIN.getColumn());
         else

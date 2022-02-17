@@ -1,8 +1,11 @@
 package observatory.report;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.List;
 
@@ -57,13 +60,12 @@ public class Report
         if (!template.isFile())
             throw new InvalidTemplateException("There is no report template in the config folder.");
 
-        Files.copy(template.toPath(), report.toPath());
-
         List<ListTest> results = Util.readResultsFromFolder(resultsFolder, type);
 
         try
         (
-            Workbook workbook = new XSSFWorkbook(report);
+            InputStream input = new FileInputStream(template);
+            Workbook workbook = new XSSFWorkbook(input);
         )
         {
             Sheet listResultsTemplate = workbook.getSheet(LIST_RESULTS_TEMPLATE_SHEET_NAME);
@@ -100,6 +102,16 @@ public class Report
 
             // Remove list template from the final report.
             workbook.removeSheetAt(workbook.getSheetIndex(listResultsTemplate));
+
+            workbook.setForceFormulaRecalculation(true);
+
+            try
+            (
+                OutputStream output = new FileOutputStream(report);
+            )
+            {
+                workbook.write(output);
+            }
         }
         catch (IOException | InvalidTemplateException e)
         {
@@ -109,6 +121,5 @@ public class Report
         {
             throw new InvalidTemplateException(e);
         }
-
     }
 }

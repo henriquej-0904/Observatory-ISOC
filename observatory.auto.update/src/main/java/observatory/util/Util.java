@@ -2,15 +2,12 @@ package observatory.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import observatory.internetnlAPI.config.RequestType;
-
-//import com.gembox.spreadsheet.SpreadsheetInfo;
 
 public class Util
 {
@@ -41,10 +38,6 @@ public class Util
             (folder, name) -> name.endsWith(".json")
         );
 
-        Arrays.sort(results,
-            (v1, v2) -> ALPHABETIC_ORDER.compare(v1.getName(), v2.getName())
-        );
-
         try
         {
             return Stream.of(results)
@@ -57,6 +50,7 @@ public class Util
                         throw new IllegalArgumentException(e);
                     }
                 })
+                .sorted((v1, v2) ->  String.CASE_INSENSITIVE_ORDER.compare(v1.getName(), v2.getName()))
                 .collect(Collectors.toUnmodifiableList());
         } catch (IllegalArgumentException e) {
             throw (IOException)e.getCause();

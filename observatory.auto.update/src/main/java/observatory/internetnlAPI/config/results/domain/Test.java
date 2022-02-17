@@ -109,6 +109,7 @@ public enum Test
         this.test = test;
         this.description = description;
         this.type = type;
+        this.category = category;
     }
 
     /**

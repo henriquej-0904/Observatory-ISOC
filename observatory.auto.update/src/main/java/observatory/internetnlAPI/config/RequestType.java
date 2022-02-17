@@ -25,5 +25,18 @@ public enum RequestType
     @JsonValue
     public String getType() {
         return type;
-    }    
+    } 
+    
+    public static RequestType parseType(String type)
+    {
+        switch (type.toUpperCase()) {
+            case "WEB":
+                return RequestType.WEB;
+            case "MAIL":
+                return RequestType.MAIL;
+        
+            default:
+                throw new IllegalArgumentException("Illegal type.");
+        }
+    }
 }

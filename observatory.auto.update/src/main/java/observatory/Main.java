@@ -7,6 +7,7 @@ import java.util.List;
 import observatory.internetnlAPI.InternetnlAPI;
 import observatory.internetnlAPI.InternetnlAPIWithPythonScripts;
 import observatory.internetnlAPI.config.RequestType;
+import observatory.report.Report;
 import observatory.update.TestDomains;
 
 public class Main
@@ -31,6 +32,10 @@ public class Main
                 testDomains(nextArgs);
                 break;
         
+            case "report":
+                report(nextArgs);
+                break;
+
             default:
                 invalidArgs();
                 break;
@@ -41,7 +46,7 @@ public class Main
     {
         System.out.println("Observatory commands:\n");
 
-        System.out.println("-> test <[ALL | WEB | MAIL]> <domains.xlsx> <results folder> [-o] [lists to test]");
+        System.out.println("-> test <ALL | WEB | MAIL> <domains.xlsx> <results folder> [-o] [lists to test]");
         System.out.println("Test the lists of domains specified in the domains excel file and place "
         + "the results in the results folder.\n" +
         "If the results folder is not empty then this command " +
@@ -49,6 +54,9 @@ public class Main
         "Options:\n"+
         "\t-o -> Overwrite results if they were already tested.\n" +
         "\tlists to test -> A set of lists to test.\n");
+
+        System.out.println("-> report <WEB | MAIL> <report.xlsx> <results folder>");
+        System.out.println("Create a report of the specified type based on the results provided.\n");
     }
 
     private static void invalidArgs()
@@ -58,19 +66,12 @@ public class Main
         System.exit(EXIT_ERROR_STATUS);
     }
 
-    private static void invalidArgs(String msg)
-    {
-        System.err.println(msg);
-        printHelp();
-        System.exit(EXIT_ERROR_STATUS);
-    }
-
     private static void testDomains(List<String> args)
     {
         if (args.size() < 3)
             invalidArgs();
         
-        String type = args.remove(0);
+        String type = args.remove(0).toUpperCase();
         File domains = new File(args.remove(0));
         File resultsFolder = new File(args.remove(0));
 
@@ -97,25 +98,38 @@ public class Main
             else
                 tests = new TestDomains(domains, resultsFolder, api);
 
-            switch (type.toUpperCase()) {
-                case "ALL":
-                    tests.Start(overwrite);
-                    break;
-                case "WEB":
-                    tests.Start(RequestType.WEB, overwrite);
-                    break;
-                case "MAIL":
-                    tests.Start(RequestType.MAIL, overwrite);
-                    break;
-                default:
-                    invalidArgs("Invalid type.");
-                    break;
-            }
+            if (type.equals("ALL"))
+                tests.Start(overwrite);
+            else
+                tests.Start(RequestType.parseType(type), overwrite);
 
             System.out.println("All tests completed successfully!");
         }
         catch (Exception e) {
             System.err.println(e.getMessage());
+            System.exit(EXIT_ERROR_STATUS);
+        }
+    }
+
+    private static void report(List<String> args)
+    {
+        if (args.size() < 3)
+            invalidArgs();
+        
+        try
+        {
+            RequestType type = RequestType.parseType(args.remove(0));
+            File report = new File(args.remove(0));
+            File resultsFolder = new File(args.remove(0));
+
+            Report createReport = new Report(resultsFolder);
+            createReport.generateAndSaveReport(type, report);
+
+            System.out.println("Report generated successfully.");
+        }
+        catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.exit(EXIT_ERROR_STATUS);
         }
     }
 }
