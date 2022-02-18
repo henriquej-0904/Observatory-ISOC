@@ -1,9 +1,8 @@
 package observatory.report;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -23,7 +22,6 @@ import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.results.domain.Category;
 import observatory.internetnlAPI.config.results.domain.CustomTest;
 import observatory.internetnlAPI.config.results.domain.DomainResults;
-import observatory.internetnlAPI.config.results.domain.Result;
 import observatory.internetnlAPI.config.results.domain.ResultStatus;
 import observatory.internetnlAPI.config.results.domain.Results;
 import observatory.internetnlAPI.config.results.domain.Test;
@@ -82,7 +80,8 @@ public class ListReport
             )
         );
 
-    private static final Map<ExtraField, CellAddress> ADDRESS_EXTRA_FIELD =
+    // Extra fields...
+    /* private static final Map<ExtraField, CellAddress> ADDRESS_EXTRA_FIELD =
         Map.ofEntries
         (
             Map.entry(ExtraField.WEB_DNSSEC, new CellAddress("AT12")),
@@ -133,7 +132,7 @@ public class ListReport
                 }
             )
             .collect(Collectors.toUnmodifiableMap(
-                (entry) -> entry.getKey(), (entry) -> entry.getValue()));
+                (entry) -> entry.getKey(), (entry) -> entry.getValue())); */
 
 
     private static final Map<ResultStatus, IndexedColors> COLOR_BY_RESULT =
@@ -156,34 +155,73 @@ public class ListReport
             RequestType.MAIL, new CellAddress("BJ1").getColumn()
         );
 
+    
+    private final Sheet report;
+
+    private final ListTest listResults;
+
+    //#region Report options
+
+    private boolean fullReport;
+
+    //#endregion
 
     /**
-     * Create a report for the specified List results and template.
+     * Creates a new instance based on a report template and the results of a list.
      * 
      * @param reportTemplate - The template of the List Report.
      * @param listResults - The results of the List.
-     * @param fullReport - True to create a report with the full results of each domain in the list.
+     */
+    public ListReport(Sheet reportTemplate, ListTest listResults)
+    {
+        Objects.requireNonNull(reportTemplate);
+        this.listResults = Objects.requireNonNull(listResults);
+        this.fullReport = false;
+
+        Workbook workbook = reportTemplate.getWorkbook();
+        this.report = workbook.cloneSheet(workbook.getSheetIndex(reportTemplate));
+        workbook.setSheetName(workbook.getSheetIndex(report), listResults.getName());
+    }
+
+    /**
+     * @return the fullReport
+     */
+    public boolean isFullReport() {
+        return fullReport;
+    }
+
+    /**
+     * @param fullReport the fullReport to set
+     */
+    public void setFullReport(boolean fullReport) {
+        this.fullReport = fullReport;
+    }
+
+
+    public int getTotalDomains()
+    {
+        return this.listResults.getResults().getDomains().size();
+    }
+
+    public RequestType getType()
+    {
+        return getInternetnlRequest().getRequest_type();
+    }
+
+    private InternetnlRequest getInternetnlRequest()
+    {
+        return this.listResults.getResults().getRequest();
+    }
+
+    /**
+     * Create a report for the specified List.
      * 
      * @return The generated List report as a Sheet.
      */
-    public static Sheet createListReport(Sheet reportTemplate, ListTest listResults, boolean fullReport)
+    public Sheet generateReport()
     {
-        Workbook workbook = reportTemplate.getWorkbook();
-        Sheet report = workbook.cloneSheet(workbook.getSheetIndex(reportTemplate));
-
-        InternetnlRequest request = listResults.getResults().getRequest();
-        RequestType type = request.getRequest_type();
-
-        // Set report name
-        workbook.setSheetName(workbook.getSheetIndex(report), listResults.getName());
-
-        // TODO: set extra fields statistics - points to...
-
-        int totalDomains, testedDomains;
-
         Map<String, DomainResults> resultsByDomain = listResults.getResults().getDomains();
-        totalDomains = resultsByDomain.size();
-        testedDomains = 0;
+        int testedDomains = 0;
 
         int currentDomainRow = FIRST_DOMAIN_ROW.getRow();
         for (Entry<String, DomainResults> domainResults : resultsByDomain.entrySet())
@@ -209,28 +247,28 @@ public class ListReport
             // set score
             row.createCell(currentColumn++, CellType.NUMERIC).setCellValue(results.getScoring().getPercentage());
 
-            setDomainStatistics(report, results.getResults(), type);
+            setDomainStatistics(results.getResults());
 
-            if (fullReport)
+            if (this.fullReport)
             {
                 // set report url
                 row.createCell(currentColumn++, CellType.STRING).setCellValue(results.getReport().getUrl());
-                setDomainResults(row, results.getResults(), type);
+                setDomainResults(row, results.getResults());
             }
         }
     
-        setTestedDomains(report, type, testedDomains);
-        setAverageScore(report, totalDomains);
+        setTestedDomains(testedDomains);
+        setAverageScore();
 
-        if (fullReport)
-            setConditionalFormatting(report, type, totalDomains);
+        if (this.fullReport)
+            setConditionalFormatting();
 
         return report;
     }
 
-    private static void setAverageScore(Sheet report, int totalDomains)
+    private void setAverageScore()
     {
-        if (totalDomains == 0)
+        if (getTotalDomains() == 0)
             return;
         
         Cell cell = report.getRow(ADDRESS_AVERAGE_SCORE.getRow())
@@ -238,64 +276,63 @@ public class ListReport
         
         CellAddress range1, range2;
         range1 = new CellAddress(FIRST_DOMAIN_ROW.getRow(), ADDRESS_AVERAGE_SCORE.getColumn());
-        range2 = new CellAddress(range1.getRow() + totalDomains - 1, range1.getColumn());
+        range2 = new CellAddress(range1.getRow() + getTotalDomains() - 1, range1.getColumn());
         cell.setCellFormula(String.format("AVERAGE(%s:%s)", range1.formatAsString(), range2.formatAsString()));
     }
 
-    private static void setDomainStatistics(Sheet report, Results results, RequestType type)
-    {
-        for (Category category : Category.values(type))
-            setDomainStatistics(report, results, category);
+    //#region Domain Statistics
 
-        setCustomFieldStatistics(report, results, type);
+    private void setDomainStatistics(Results results)
+    {
+        for (Category category : Category.values(getType()))
+            setDomainStatistics(results, category);
+
+        setCustomFieldStatistics(results);
     }
 
-    private static void setDomainStatistics(Sheet report, Results results, Category category)
+    private void setDomainStatistics(Results results, Category category)
     {
         CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
         int currentColumn = categoryAddress.getColumn();
 
-        Result result = results.getCategories().get(category);
-        setResult(report, result, currentColumn++);
+        ResultStatus result = results.getCategories().get(category).getStatus();
+        incCell(result, currentColumn++);
 
         for (Test test : Test.values(category))
         {
-            result = results.getTests().get(test);
-            setResult(report, result, currentColumn++);
+            result = results.getTests().get(test).getStatus();
+            incCell(result, currentColumn++);
         }
     }
 
-    private static void setResult(Sheet report, Result result, int column)
+    private void setCustomFieldStatistics(Results results)
     {
-        Cell cell = report.getRow(ADDRESS_RESULT.get(result.getStatus()).getRow()).getCell(column);
-        int value = (int)cell.getNumericCellValue();
-        cell.setCellValue(value + 1);
-    }
+        RequestType type = getType();
 
-    private static void setCustomFieldStatistics(Sheet report, Results results, RequestType type)
-    {
         for (Entry<CustomTest, Object> test : results.getCustom().entrySet())
         {
             CustomTest customTest = test.getKey();
             ResultStatus result = customTest.convertToResult(test.getValue());
 
-            setCustomField(report, customTest, result, type);
+            incCell(result, ADDRESS_CUSTOM_FIELD.get(type).get(customTest).getColumn());
         }
     }
 
-    private static void setCustomField(Sheet report, CustomTest test, ResultStatus result, RequestType type)
+    private void incCell(ResultStatus result, int column)
     {
-        Cell cell = report.getRow(ADDRESS_RESULT.get(result).getRow())
-            .getCell(ADDRESS_CUSTOM_FIELD.get(type).get(test).getColumn());
+        Cell cell = this.report.getRow(ADDRESS_RESULT.get(result).getRow()).getCell(column);
         int value = (int)cell.getNumericCellValue();
         cell.setCellValue(value + 1);
     }
 
-    //######################################################################
+    //#endregion
 
-    private static void setTestedDomains(Sheet report, RequestType type, int testedDomains)
+    //#region Set number tested domains
+
+    private void setTestedDomains(int testedDomains)
     {
-        Row row = report.getRow(ADDRESS_TESTED_DOMAINS.getRow());
+        RequestType type  = getType();
+        Row row = this.report.getRow(ADDRESS_TESTED_DOMAINS.getRow());
         for (Category category : Category.values(type))
             setTestedDomains(row, category, testedDomains);
 
@@ -304,7 +341,7 @@ public class ListReport
             setTestedDomains(row, customCellAddress.getColumn(), testedDomains);
     }
 
-    private static void setTestedDomains(Row row, Category category, int testedDomains)
+    private void setTestedDomains(Row row, Category category, int testedDomains)
     {
         CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
         int currentColumn = categoryAddress.getColumn();
@@ -315,19 +352,24 @@ public class ListReport
             setTestedDomains(row, currentColumn++, testedDomains);
     }
 
-    private static void setTestedDomains(Row row, int column, int testedDomains)
+    private void setTestedDomains(Row row, int column, int testedDomains)
     {
         row.getCell(column).setCellValue(testedDomains);
     }
 
-    //############################################################################
+    //#endregion
 
-    private static void setDomainResults(Row domainRow, Results results, RequestType type)
+    //#region Set Domain Results - Full report
+
+    private void setDomainResults(Row domainRow, Results results)
     {
+        RequestType type = getType();
         for (Category category : Category.values(type))
             setDomainResults(domainRow, results, category);
         
-        // TODO: set custom fields - points to...
+        // TODO: set extra fields - points to...
+
+        // custom fields
 
         Map<CustomTest, CellAddress> addresses = ADDRESS_CUSTOM_FIELD.get(type);
 
@@ -340,7 +382,7 @@ public class ListReport
         }
     }
 
-    private static void setDomainResults(Row domainRow, Results results, Category category)
+    private void setDomainResults(Row domainRow, Results results, Category category)
     {
         CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
         int currentColumn = categoryAddress.getColumn();
@@ -355,20 +397,22 @@ public class ListReport
         }
     }
 
-    private static void setDomainResult(Row domainRow, int column, ResultStatus result)
+    private void setDomainResult(Row domainRow, int column, ResultStatus result)
     {
         Cell cell = domainRow.createCell(column, CellType.STRING);
         cell.setCellValue(result.getStatus());
     }
 
-    private static void setConditionalFormatting(Sheet sheet, RequestType type, int numberDomains)
+    //#endregion
+
+    private void setConditionalFormatting()
     {
-        SheetConditionalFormatting formatting = sheet.getSheetConditionalFormatting();
+        SheetConditionalFormatting formatting = this.report.getSheetConditionalFormatting();
 
         // calculate results range
         CellAddress firstAddress = new CellAddress(FIRST_DOMAIN_ROW.getRow(), FIRST_RESULT_COLUMN);
-        CellAddress lastAddress = new CellAddress(firstAddress.getRow() + numberDomains - 1,
-            LAST_RESULT_COLUMN.get(type));
+        CellAddress lastAddress = new CellAddress(firstAddress.getRow() + getTotalDomains() - 1,
+            LAST_RESULT_COLUMN.get(getType()));
         CellRangeAddress range = new CellRangeAddress(
             firstAddress.getRow(), lastAddress.getRow(), firstAddress.getColumn(), lastAddress.getColumn());
         

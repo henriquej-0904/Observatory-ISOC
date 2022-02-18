@@ -116,8 +116,11 @@ public class Report
             }
 
             for (ListTest listResults : results)
-                ListReport.createListReport(listResultsTemplate, listResults,
-                    listsFullReport.contains(listResults.getName()));
+            {
+                ListReport listReport = new ListReport(listResultsTemplate, listResults);
+                listReport.setFullReport(listsFullReport.contains(listResults.getName()));
+                listReport.generateReport();
+            }
 
             // Remove list template from the final report.
             workbook.removeSheetAt(workbook.getSheetIndex(listResultsTemplate));
