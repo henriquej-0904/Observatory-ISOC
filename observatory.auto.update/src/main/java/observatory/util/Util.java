@@ -38,6 +38,9 @@ public class Util
             (folder, name) -> name.endsWith(".json")
         );
 
+        if (results == null || results.length == 0)
+            throw new IllegalArgumentException("The specified results folder is invalid.");
+
         try
         {
             return Stream.of(results)

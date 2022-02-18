@@ -55,8 +55,12 @@ public class Main
         "\t-o -> Overwrite results if they were already tested.\n" +
         "\tlists to test -> A set of lists to test.\n");
 
-        System.out.println("-> report <WEB | MAIL> <report.xlsx> <results folder>");
-        System.out.println("Create a report of the specified type based on the results provided.\n");
+        System.out.println("-> report <WEB | MAIL> <report.xlsx> <results folder> [lists to create a full report]");
+        System.out.println("Create a report of the specified type based on the results provided.");
+        System.out.println(
+            "Options:\n"+
+            "\tlists to create a full report -> The report of the specified lists will have the full results.\n"
+        );
     }
 
     private static void invalidArgs()
@@ -122,8 +126,10 @@ public class Main
             File report = new File(args.remove(0));
             File resultsFolder = new File(args.remove(0));
 
-            Report createReport = new Report(resultsFolder);
-            createReport.generateAndSaveReport(type, report);
+            if (args.isEmpty())
+                Report.generateAndSaveReport(type, report, resultsFolder);
+            else
+                Report.generateAndSaveReport(type, report, resultsFolder, args);
 
             System.out.println("Report generated successfully.");
         }

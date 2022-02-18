@@ -6,8 +6,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -35,32 +38,47 @@ public class Report
     private static final String DATE_FORMAT = "%DATE%";
 
 
-    private final File resultsFolder;
-
     /**
-     * Creates a new Report based on the results in the specified folder.
-     * @param resultsFolder
-     */
-    public Report(File resultsFolder)
-    {
-        this.resultsFolder = resultsFolder;
-    }
-
-    /**
-     * Generates a report for the specified type and saves it.
-     * @param type
-     * @param report
+     * Generates a report based on the results provided for the specified type and saves it.
+     * 
+     * @param type - The type of report.
+     * @param report - The location of the report.
+     * @param resultsFolder - The location of the results.
+     * 
      * @throws IOException
      * @throws InvalidTemplateException
      */
-    public void generateAndSaveReport(RequestType type, File report) throws IOException, InvalidTemplateException
+    public static void generateAndSaveReport(RequestType type, File report, File resultsFolder)
+        throws IOException, InvalidTemplateException
     {
+        generateAndSaveReport(type, report, resultsFolder, List.of());
+    }
+
+    /**
+     * Generates a report based on the results provided for the specified type and saves it.
+     * 
+     * @param type - The type of report.
+     * @param report - The location of the report.
+     * @param resultsFolder - The location of the results.
+     * @param listsFullReport - The lists that will have a full report of the results.
+     * @throws IOException
+     * @throws InvalidTemplateException
+     */
+    public static void generateAndSaveReport(RequestType type, File report, File resultsFolder,
+        List<String> listsFullReport) throws IOException, InvalidTemplateException
+    {
+        Objects.requireNonNull(report);
+        Objects.requireNonNull(resultsFolder);
+        Objects.requireNonNull(listsFullReport);
+
         File template = type == RequestType.WEB ? WEB_TEMPLATE : MAIL_TEMPLATE;
 
         if (!template.isFile())
             throw new InvalidTemplateException("There is no report template in the config folder.");
 
         List<ListTest> results = Util.readResultsFromFolder(resultsFolder, type);
+
+        checkIfListsExist(listsFullReport, results);
 
         try
         (
@@ -98,7 +116,8 @@ public class Report
             }
 
             for (ListTest listResults : results)
-                ListReport.createListReport(listResultsTemplate, listResults);
+                ListReport.createListReport(listResultsTemplate, listResults,
+                    listsFullReport.contains(listResults.getName()));
 
             // Remove list template from the final report.
             workbook.removeSheetAt(workbook.getSheetIndex(listResultsTemplate));
@@ -121,5 +140,23 @@ public class Report
         {
             throw new InvalidTemplateException(e);
         }
+    }
+
+    private static void checkIfListsExist(List<String> listsToConfirm, List<ListTest> lists)
+    {
+        if (listsToConfirm.isEmpty())
+            return;
+
+        listsToConfirm = new ArrayList<>(listsToConfirm);
+
+        List<String> availableLists = lists.stream()
+            .map((v) -> v.getName())
+            .collect(Collectors.toList());
+
+        listsToConfirm.removeAll(availableLists);
+
+        if (!listsToConfirm.isEmpty())
+            throw new IllegalArgumentException(
+                "The results of the specified lists are not available: " + listsToConfirm.toString());
     }
 }

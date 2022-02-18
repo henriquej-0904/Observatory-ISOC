@@ -5,11 +5,18 @@ import java.util.Map.Entry;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.ComparisonOperator;
+import org.apache.poi.ss.usermodel.ConditionalFormattingRule;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.PatternFormatting;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.SheetConditionalFormatting;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellAddress;
+import org.apache.poi.ss.util.CellRangeAddress;
 
+import observatory.internetnlAPI.config.InternetnlRequest;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.results.domain.Category;
 import observatory.internetnlAPI.config.results.domain.CustomTest;
@@ -22,6 +29,8 @@ import observatory.util.ListTest;
 
 /**
  * A class to create a report from the results of a List.
+ * 
+ * TODO: extra fields...
  */
 public class ListReport
 {
@@ -56,17 +65,43 @@ public class ListReport
             Category.MAIL_STARTTLS, new CellAddress("Y11")
         );
 
-    private static final CellAddress ADDRESS_EXTRA_FIELD_WEB_TLS_1_3_SUPPORT =
-        new CellAddress("BB12");
+    private static final Map<RequestType, Map<CustomTest, CellAddress>> ADDRESS_CUSTOM_FIELD =
+        Map.of
+        (
+            RequestType.WEB,
+            Map.of(CustomTest.TLS_1_3_SUPPORT, new CellAddress("BB12")),
 
-    private static final CellAddress ADDRESS_EXTRA_FIELD_MAIL_TLS_1_3_SUPPORT =
-        new CellAddress("BJ12");
+            RequestType.MAIL,
+            Map.of
+            (
+                CustomTest.TLS_1_3_SUPPORT, new CellAddress("BJ12"),
+                CustomTest.MAIL_SENDING_DOMAIN, new CellAddress("BF12"),
+                CustomTest.MAIL_SERVER_TESTABLE, new CellAddress("BG12")
+            )
+        );
 
-    private static final CellAddress ADDRESS_EXTRA_FIELD_MAIL_SENDING_DOMAIN =
-        new CellAddress("BF12");
+    
 
-    private static final CellAddress ADDRESS_EXTRA_FIELD_MAIL_SERVER_TESTABLE =
-        new CellAddress("BG12");
+
+    private static final Map<ResultStatus, IndexedColors> COLOR_BY_RESULT =
+        Map.of
+        (
+            ResultStatus.STATUS_ERROR, IndexedColors.LIGHT_ORANGE,
+            ResultStatus.STATUS_FAIL, IndexedColors.RED1,
+            ResultStatus.STATUS_NOTICE, IndexedColors.LIGHT_YELLOW,
+            ResultStatus.STATUS_INFO, IndexedColors.LIGHT_BLUE,
+            ResultStatus.STATUS_NOT_TESTED, IndexedColors.GREY_50_PERCENT,
+            ResultStatus.STATUS_SUCCESS, IndexedColors.SEA_GREEN
+        );
+
+
+    private static final int FIRST_RESULT_COLUMN = new CellAddress("F1").getColumn();
+
+    private static final Map<RequestType, Integer> LAST_RESULT_COLUMN =
+        Map.of(
+            RequestType.WEB, new CellAddress("BB1").getColumn(),
+            RequestType.MAIL, new CellAddress("BJ1").getColumn()
+        );
 
 
     /**
@@ -74,15 +109,17 @@ public class ListReport
      * 
      * @param reportTemplate - The template of the List Report.
      * @param listResults - The results of the List.
+     * @param fullReport - True to create a report with the full results of each domain in the list.
      * 
      * @return The generated List report as a Sheet.
      */
-    public static Sheet createListReport(Sheet reportTemplate, ListTest listResults)
+    public static Sheet createListReport(Sheet reportTemplate, ListTest listResults, boolean fullReport)
     {
         Workbook workbook = reportTemplate.getWorkbook();
         Sheet report = workbook.cloneSheet(workbook.getSheetIndex(reportTemplate));
 
-        RequestType type = listResults.getResults().getRequest().getRequest_type();
+        InternetnlRequest request = listResults.getResults().getRequest();
+        RequestType type = request.getRequest_type();
 
         // Set report name
         workbook.setSheetName(workbook.getSheetIndex(report), listResults.getName());
@@ -118,10 +155,20 @@ public class ListReport
             row.createCell(currentColumn++, CellType.NUMERIC).setCellValue(results.getScoring().getPercentage());
 
             setDomainStatistics(report, results.getResults(), type);
+
+            if (fullReport)
+            {
+                // set report url
+                row.createCell(currentColumn++, CellType.STRING).setCellValue(results.getReport().getUrl());
+                setDomainResults(row, results.getResults(), type);
+            }
         }
     
         setTestedDomains(report, type, testedDomains);
         setAverageScore(report, totalDomains);
+
+        if (fullReport)
+            setConditionalFormatting(report, type, totalDomains);
 
         return report;
     }
@@ -145,7 +192,7 @@ public class ListReport
         for (Category category : Category.values(type))
             setDomainStatistics(report, results, category);
 
-        setExtraFieldStatistics(report, results, type);
+        setCustomFieldStatistics(report, results, type);
     }
 
     private static void setDomainStatistics(Sheet report, Results results, Category category)
@@ -170,81 +217,26 @@ public class ListReport
         cell.setCellValue(value + 1);
     }
 
-    private static void setExtraFieldStatistics(Sheet report, Results results, RequestType type)
+    private static void setCustomFieldStatistics(Sheet report, Results results, RequestType type)
     {
-        Map<CustomTest, Object> custom = results.getCustom();
+        for (Entry<CustomTest, Object> test : results.getCustom().entrySet())
+        {
+            CustomTest customTest = test.getKey();
+            ResultStatus result = customTest.convertToResult(test.getValue());
 
-        setExtraFieldTls_1_3_Support(report, custom.get(CustomTest.TLS_1_3_SUPPORT), type);
-
-        if (type == RequestType.WEB)
-            return;
-
-        setExtraFieldMailSendingDomain(report, custom.get(CustomTest.MAIL_NON_SENDING_DOMAIN));
-        setExtraFieldMailServersTestable(report, custom.get(CustomTest.MAIL_SERVER_TESTABLE));
+            setCustomField(report, customTest, result, type);
+        }
     }
 
-    private static void setExtraFieldTls_1_3_Support(Sheet report, Object result, RequestType type)
+    private static void setCustomField(Sheet report, CustomTest test, ResultStatus result, RequestType type)
     {
-        CellAddress tls_1_3Address;
-        if (type == RequestType.WEB)
-            tls_1_3Address = ADDRESS_EXTRA_FIELD_WEB_TLS_1_3_SUPPORT;
-        else
-            tls_1_3Address = ADDRESS_EXTRA_FIELD_MAIL_TLS_1_3_SUPPORT;
-
-        Cell cell;
-        if (result.equals("yes"))
-            cell = report.getRow(ADDRESS_RESULT.get(ResultStatus.STATUS_SUCCESS).getRow())
-                    .getCell(tls_1_3Address.getColumn());
-        else
-            cell = report.getRow(ADDRESS_RESULT.get(ResultStatus.STATUS_FAIL).getRow())
-                    .getCell(tls_1_3Address.getColumn());
-
+        Cell cell = report.getRow(ADDRESS_RESULT.get(result).getRow())
+            .getCell(ADDRESS_CUSTOM_FIELD.get(type).get(test).getColumn());
         int value = (int)cell.getNumericCellValue();
         cell.setCellValue(value + 1);
     }
 
-    /**
-     * Sets the extra field mail sending domain.
-     * As specified in CustomTest.MAIL_NON_SENDING_DOMAIN documentation,
-     * the result of this test should be negated to avoid confusion.
-     * 
-     * @param report
-     * @param result
-     * 
-     * @see CustomTest
-     */
-    private static void setExtraFieldMailSendingDomain(Sheet report, Object result)
-    {
-        Cell cell;
-
-        /**
-         * Negate the result
-         */
-        if (!(Boolean)result)
-            cell = report.getRow(ADDRESS_RESULT.get(ResultStatus.STATUS_SUCCESS).getRow())
-                    .getCell(ADDRESS_EXTRA_FIELD_MAIL_SENDING_DOMAIN.getColumn());
-        else
-            cell = report.getRow(ADDRESS_RESULT.get(ResultStatus.STATUS_FAIL).getRow())
-                    .getCell(ADDRESS_EXTRA_FIELD_MAIL_SENDING_DOMAIN.getColumn());
-        
-        int value = (int)cell.getNumericCellValue();
-        cell.setCellValue(value + 1);
-    }
-
-    private static void setExtraFieldMailServersTestable(Sheet report, Object result)
-    {
-        Cell cell;
-        if (result.equals("ok"))
-            cell = report.getRow(ADDRESS_RESULT.get(ResultStatus.STATUS_SUCCESS).getRow())
-                    .getCell(ADDRESS_EXTRA_FIELD_MAIL_SERVER_TESTABLE.getColumn());
-        else
-            cell = report.getRow(ADDRESS_RESULT.get(ResultStatus.STATUS_FAIL).getRow())
-                    .getCell(ADDRESS_EXTRA_FIELD_MAIL_SERVER_TESTABLE.getColumn());
-        
-        int value = (int)cell.getNumericCellValue();
-        cell.setCellValue(value + 1);
-    }
-
+    //######################################################################
 
     private static void setTestedDomains(Sheet report, RequestType type, int testedDomains)
     {
@@ -252,27 +244,9 @@ public class ListReport
         for (Category category : Category.values(type))
             setTestedDomains(row, category, testedDomains);
 
-        // extra fields
-
-        // tls 1.3
-        int column;
-        if (type == RequestType.WEB)
-            column = ADDRESS_EXTRA_FIELD_WEB_TLS_1_3_SUPPORT.getColumn();
-        else
-            column = ADDRESS_EXTRA_FIELD_MAIL_TLS_1_3_SUPPORT.getColumn();
-
-        setTestedDomains(row, column, testedDomains);
-
-        if (type == RequestType.WEB)
-            return;
-
-        // mail sending domain
-        column = ADDRESS_EXTRA_FIELD_MAIL_SENDING_DOMAIN.getColumn();
-        setTestedDomains(row, column, testedDomains);
-
-        // mail server testable
-        column = ADDRESS_EXTRA_FIELD_MAIL_SERVER_TESTABLE.getColumn();
-        setTestedDomains(row, column, testedDomains);
+        // custom fields
+        for (CellAddress customCellAddress : ADDRESS_CUSTOM_FIELD.get(type).values())
+            setTestedDomains(row, customCellAddress.getColumn(), testedDomains);
     }
 
     private static void setTestedDomains(Row row, Category category, int testedDomains)
@@ -289,5 +263,78 @@ public class ListReport
     private static void setTestedDomains(Row row, int column, int testedDomains)
     {
         row.getCell(column).setCellValue(testedDomains);
+    }
+
+    //############################################################################
+
+    private static void setDomainResults(Row domainRow, Results results, RequestType type)
+    {
+        for (Category category : Category.values(type))
+            setDomainResults(domainRow, results, category);
+        
+        // extra fields
+
+        Map<CustomTest, CellAddress> addresses = ADDRESS_CUSTOM_FIELD.get(type);
+
+        for (Entry<CustomTest, Object> test : results.getCustom().entrySet())
+        {
+            CustomTest customTest = test.getKey();
+            ResultStatus result = customTest.convertToResult(test.getValue());
+
+            setDomainResult(domainRow, addresses.get(customTest).getColumn(), result);
+        }
+    }
+
+    private static void setDomainResults(Row domainRow, Results results, Category category)
+    {
+        CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
+        int currentColumn = categoryAddress.getColumn();
+
+        ResultStatus result = results.getCategories().get(category).getStatus();
+        setDomainResult(domainRow, currentColumn++, result);
+
+        for (Test test : Test.values(category))
+        {
+            result = results.getTests().get(test).getStatus();
+            setDomainResult(domainRow, currentColumn++, result);
+        }
+    }
+
+    private static void setDomainResult(Row domainRow, int column, ResultStatus result)
+    {
+        Cell cell = domainRow.createCell(column, CellType.STRING);
+        cell.setCellValue(result.getStatus());
+    }
+
+    private static void setConditionalFormatting(Sheet sheet, RequestType type, int numberDomains)
+    {
+        SheetConditionalFormatting formatting = sheet.getSheetConditionalFormatting();
+
+        // calculate results range
+        CellAddress firstAddress = new CellAddress(FIRST_DOMAIN_ROW.getRow(), FIRST_RESULT_COLUMN);
+        CellAddress lastAddress = new CellAddress(firstAddress.getRow() + numberDomains - 1,
+            LAST_RESULT_COLUMN.get(type));
+        CellRangeAddress range = new CellRangeAddress(
+            firstAddress.getRow(), lastAddress.getRow(), firstAddress.getColumn(), lastAddress.getColumn());
+        
+        CellRangeAddress[] regions = new CellRangeAddress[] {range};
+
+        // create conditions
+        COLOR_BY_RESULT.entrySet().stream()
+            .map(
+                (entry) ->
+                {
+                    ConditionalFormattingRule rule =
+                        formatting.createConditionalFormattingRule(ComparisonOperator.EQUAL,
+                            "= \"" + entry.getKey().getStatus() + "\"");
+
+                    PatternFormatting patternFormatting = rule.createPatternFormatting();
+                    patternFormatting.setFillBackgroundColor(entry.getValue().index);
+                    patternFormatting.setFillForegroundColor(IndexedColors.AUTOMATIC.index);
+                    patternFormatting.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+                    
+                    return rule;
+                })
+            .forEach((rule) -> formatting.addConditionalFormatting(regions, rule));
     }
 }
