@@ -58,8 +58,8 @@ public enum Test
 
     MAIL_IPV6_NS_ADDRESS ("mail_ipv6_ns_address", "IPv6 addresses for name servers", RequestType.MAIL, Category.MAIL_IPV6),
     MAIL_IPV6_NS_REACH ("mail_ipv6_ns_reach", "IPv6 reachability of name servers", RequestType.MAIL, Category.MAIL_IPV6),
-    MAIL_IPV6_WS_ADDRESS ("mail_ipv6_mx_address", "IPv6 addresses for mail server(s)", RequestType.MAIL, Category.MAIL_IPV6),
-    MAIL_IPV6_WS_REACH ("mail_ipv6_mx_reach", "IPv6 reachability of mail server(s)", RequestType.MAIL, Category.MAIL_IPV6),
+    MAIL_IPV6_MX_ADDRESS ("mail_ipv6_mx_address", "IPv6 addresses for mail server(s)", RequestType.MAIL, Category.MAIL_IPV6),
+    MAIL_IPV6_MX_REACH ("mail_ipv6_mx_reach", "IPv6 reachability of mail server(s)", RequestType.MAIL, Category.MAIL_IPV6),
     
     MAIL_DNSSEC_MAILTO_EXIST ("mail_dnssec_mailto_exist", "DNSSEC existence", RequestType.MAIL, Category.MAIL_DNSSEC),
     MAIL_DNSSEC_MAILTO_VALID ("mail_dnssec_mailto_valid", "DNSSEC validity", RequestType.MAIL, Category.MAIL_DNSSEC),
