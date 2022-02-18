@@ -2,6 +2,8 @@ package observatory.report;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -80,7 +82,58 @@ public class ListReport
             )
         );
 
-    
+    private static final Map<ExtraField, CellAddress> ADDRESS_EXTRA_FIELD =
+        Map.ofEntries
+        (
+            Map.entry(ExtraField.WEB_DNSSEC, new CellAddress("AT12")),
+            Map.entry(ExtraField.WEB_TLS_AVAILABLE, new CellAddress("AU12")),
+            Map.entry(ExtraField.WEB_HTTPS_REDIRECT, new CellAddress("AW12")),
+            Map.entry(ExtraField.WEB_HSTS, new CellAddress("AX12")),
+            Map.entry(ExtraField.WEB_IPV6, new CellAddress("AY12")),
+            Map.entry(ExtraField.WEB_IPV6_NAME_SERVER, new CellAddress("AZ12")),
+            Map.entry(ExtraField.WEB_IPV6_WEB_SERVER, new CellAddress("BA12")),
+
+            Map.entry(ExtraField.MAIL_DMARC, new CellAddress("AS12")),
+            Map.entry(ExtraField.MAIL_DKIM, new CellAddress("AT12")),
+            Map.entry(ExtraField.MAIL_SPF, new CellAddress("AU12")),
+            Map.entry(ExtraField.MAIL_DMARC_POLICY, new CellAddress("AV12")),
+            Map.entry(ExtraField.MAIL_SPF_POLICY, new CellAddress("AW12")),
+            Map.entry(ExtraField.MAIL_STARTTLS, new CellAddress("AX12")),
+            Map.entry(ExtraField.MAIL_DNSSEC_MAILTO_EXIST, new CellAddress("AZ12")),
+            Map.entry(ExtraField.MAIL_DNSSEC_MX_EXIST, new CellAddress("BA12")),
+            Map.entry(ExtraField.MAIL_DANE, new CellAddress("BB12")),
+            Map.entry(ExtraField.MAIL_IPV6, new CellAddress("BC12")),
+            Map.entry(ExtraField.MAIL_IPV6_NAME_SERVER, new CellAddress("BD12")),
+            Map.entry(ExtraField.MAIL_IPV6_MAIL_SERVER, new CellAddress("BE12"))
+        );
+
+    private static final Map<ExtraField, CellAddress> EXTRA_FIELD_POINTS_TO_ADDRESS =
+        Stream.of(ExtraField.values())
+            .map
+            (
+                (extraField) ->
+                {
+                    CellAddress pointsTo;
+                    if (extraField.getCategory().isPresent())
+                        pointsTo = ADDRESS_CATEGORY.get(extraField.getCategory().get());
+                    else
+                    {
+                        Test test = extraField.getTest().get();
+                        Category category = test.getCategory();
+
+                        int index = Test.values(category).indexOf(test);
+
+                        CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
+
+                        pointsTo = new CellAddress(categoryAddress.getRow(),
+                            categoryAddress.getColumn() + 1 + index);
+                    }
+
+                    return Map.entry(extraField, pointsTo);
+                }
+            )
+            .collect(Collectors.toUnmodifiableMap(
+                (entry) -> entry.getKey(), (entry) -> entry.getValue()));
 
 
     private static final Map<ResultStatus, IndexedColors> COLOR_BY_RESULT =
@@ -123,6 +176,8 @@ public class ListReport
 
         // Set report name
         workbook.setSheetName(workbook.getSheetIndex(report), listResults.getName());
+
+        // TODO: set extra fields statistics - points to...
 
         int totalDomains, testedDomains;
 
@@ -272,7 +327,7 @@ public class ListReport
         for (Category category : Category.values(type))
             setDomainResults(domainRow, results, category);
         
-        // extra fields
+        // TODO: set custom fields - points to...
 
         Map<CustomTest, CellAddress> addresses = ADDRESS_CUSTOM_FIELD.get(type);
 
