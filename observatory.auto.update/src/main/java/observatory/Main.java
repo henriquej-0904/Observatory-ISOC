@@ -1,11 +1,15 @@
 package observatory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 
 import observatory.internetnlAPI.InternetnlAPI;
-import observatory.internetnlAPI.InternetnlAPIWithPythonScripts;
+import observatory.internetnlAPI.InternetnlAPIOverNetwork;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.report.Report;
 import observatory.update.TestDomains;
@@ -89,11 +93,17 @@ public class Main
             if (overwrite = arg.toLowerCase().equals("-o"))
                 args.remove(0);
         }
-        
+
+        Properties batchConf = getInternetnlAPI_BatchConfig();
+        String endpoint = batchConf.getProperty("endpoint");
+        String username = batchConf.getProperty("username");
+        String password = batchConf.getProperty("password");
+
         try
         (
             InternetnlAPI api =
-                new InternetnlAPIWithPythonScripts(new File("internet.nl-python-scripts/batch.py"));
+                //new InternetnlAPIWithPythonScripts(new File("internet.nl-python-scripts/batch.py"));
+                new InternetnlAPIOverNetwork(new URI(endpoint), username, password);
         )
         {
             TestDomains tests;
@@ -113,6 +123,20 @@ public class Main
             System.err.println(e.getMessage());
             System.exit(EXIT_ERROR_STATUS);
         }
+    }
+
+    private static Properties getInternetnlAPI_BatchConfig()
+    {
+        Properties props = new Properties();
+        try (InputStream input = new FileInputStream("config/internetnlBatchAPI.properties");)
+        {
+            props.load(input);
+        }
+        catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.exit(EXIT_ERROR_STATUS);
+        }
+        return props;
     }
 
     private static void report(List<String> args)
