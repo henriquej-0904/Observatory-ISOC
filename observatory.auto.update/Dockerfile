@@ -1,22 +1,20 @@
-# Build internet.nl-python-scripts and java environment
+FROM maven:3-openjdk-11 AS build
 
-FROM python:3.7
+WORKDIR /observatory
+
+COPY pom.xml /observatory/pom.xml
+COPY src/ /observatory/src/
 
 # Update and install
 RUN apt update && \
 apt full-upgrade -y && \
-apt install -y nano openjdk-11-jre && \
 rm -r /var/lib/apt/lists/* && \
-pip install pip-tools
+mvn compile assembly:single
 
-WORKDIR /app
-COPY internet.nl-python-scripts/ /app/internet.nl-python-scripts
+FROM openjdk:11-jre-slim
 
-# Install python dependencies
-WORKDIR /app/internet.nl-python-scripts
-RUN pip-compile requirements.in && \
-pip install -r requirements.txt
+# COPY observatory
+WORKDIR /observatory
+COPY --from=build /observatory/target/observatory-1.0-jar-with-dependencies.jar /observatory/observatory.jar
 
-# COPY observatory java script
-WORKDIR /app
-COPY target/observatory-1.0-jar-with-dependencies.jar observatory.jar
+ENTRYPOINT [ "java", "-jar", "/observatory/observatory.jar" ]
