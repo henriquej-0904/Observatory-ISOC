@@ -38,47 +38,43 @@ public class Report
     private static final String DATE_FORMAT = "%DATE%";
 
 
+    private final RequestType type;
+
+    private final List<ListTest> results;
+
+    private List<String> listsFullReport;
+
+    private Calendar reportDate;
+
     /**
-     * Generates a report based on the results provided for the specified type and saves it.
-     * 
+     * Creates a new Report of the specified type and results folder.
      * @param type - The type of report.
-     * @param report - The location of the report.
      * @param resultsFolder - The location of the results.
-     * 
      * @throws IOException
-     * @throws InvalidTemplateException
      */
-    public static void generateAndSaveReport(RequestType type, File report, File resultsFolder)
-        throws IOException, InvalidTemplateException
+    public Report(RequestType type, File resultsFolder) throws IOException
     {
-        generateAndSaveReport(type, report, resultsFolder, List.of());
+        this.type = type;
+        this.results = Util.readResultsFromFolder(Objects.requireNonNull(resultsFolder), type);
+        this.listsFullReport = List.of();
+        this.reportDate = Calendar.getInstance();
     }
 
     /**
      * Generates a report based on the results provided for the specified type and saves it.
      * 
-     * @param type - The type of report.
      * @param report - The location of the report.
-     * @param resultsFolder - The location of the results.
-     * @param listsFullReport - The lists that will have a full report of the results.
      * @throws IOException
      * @throws InvalidTemplateException
      */
-    public static void generateAndSaveReport(RequestType type, File report, File resultsFolder,
-        List<String> listsFullReport) throws IOException, InvalidTemplateException
+    public void generateAndSaveReport(File report) throws IOException, InvalidTemplateException
     {
         Objects.requireNonNull(report);
-        Objects.requireNonNull(resultsFolder);
-        Objects.requireNonNull(listsFullReport);
 
         File template = type == RequestType.WEB ? WEB_TEMPLATE : MAIL_TEMPLATE;
 
         if (!template.isFile())
             throw new InvalidTemplateException("There is no report template in the config folder.");
-
-        List<ListTest> results = Util.readResultsFromFolder(resultsFolder, type);
-
-        checkIfListsExist(listsFullReport, results);
 
         try
         (
@@ -91,30 +87,9 @@ public class Report
                 throw new InvalidTemplateException("There is no " + LIST_RESULTS_TEMPLATE_SHEET_NAME
                     + " sheet in the report template.");
 
-            // set date on sheets
-            for (int i = 0; i < workbook.getSheetIndex(listResultsTemplate); i++)
-            {
-                Sheet sheet = workbook.getSheetAt(i);
-                Row row = sheet.getRow(ADDRESS_DATE_CELL.getRow());
-                Cell cell;
+            setReportDate(workbook, listResultsTemplate);
 
-                if (row != null && (cell = row.getCell(ADDRESS_DATE_CELL.getColumn())) != null)
-                {
-                    if (cell.getCellType() == CellType.STRING)
-                    {
-                        String valueFormat = cell.getStringCellValue();
-
-                        Calendar calendar = Calendar.getInstance();
-                        String date = String.format("%d/%d/%d",
-                            calendar.get(Calendar.DAY_OF_MONTH),
-                            calendar.get(Calendar.MONTH) + 1,
-                            calendar.get(Calendar.YEAR));
-                        
-                        cell.setCellValue(valueFormat.replace(DATE_FORMAT, date));
-                    }
-                }
-            }
-
+            // Generate List Reports.
             for (ListTest listResults : results)
             {
                 ListReport listReport = new ListReport(listResultsTemplate, listResults);
@@ -145,6 +120,31 @@ public class Report
         }
     }
 
+    private void setReportDate(Workbook workbook, Sheet listResultsTemplate)
+    {
+        for (int i = 0; i < workbook.getSheetIndex(listResultsTemplate); i++)
+        {
+            Sheet sheet = workbook.getSheetAt(i);
+            Row row = sheet.getRow(ADDRESS_DATE_CELL.getRow());
+            Cell cell;
+
+            if (row != null && (cell = row.getCell(ADDRESS_DATE_CELL.getColumn())) != null)
+            {
+                if (cell.getCellType() == CellType.STRING)
+                {
+                    String valueFormat = cell.getStringCellValue();
+
+                    String date = String.format("%d/%d/%d",
+                        this.reportDate.get(Calendar.DAY_OF_MONTH),
+                        this.reportDate.get(Calendar.MONTH) + 1,
+                        this.reportDate.get(Calendar.YEAR));
+                        
+                    cell.setCellValue(valueFormat.replace(DATE_FORMAT, date));
+                }
+            }
+        }
+    }
+
     private static void checkIfListsExist(List<String> listsToConfirm, List<ListTest> lists)
     {
         if (listsToConfirm.isEmpty())
@@ -162,4 +162,49 @@ public class Report
             throw new IllegalArgumentException(
                 "The results of the specified lists are not available: " + listsToConfirm.toString());
     }
+
+    /**
+     * @return The type of report.
+     */
+    public RequestType getType() {
+        return type;
+    }
+
+    /**
+     * @return The lists that will have a full report of the results.
+     */
+    public List<String> getListsFullReport() {
+        return listsFullReport;
+    }
+
+    /**
+     * @param listsFullReport - The lists that will have a full report of the results.
+     * 
+     * @throws IllegalArgumentException if the results of the specified lists are not available.
+     */
+    public void setListsFullReport(List<String> listsFullReport) throws IllegalArgumentException
+    {
+        if (listsFullReport == null || listsFullReport.isEmpty())
+        {
+            this.listsFullReport = List.of();
+            return;
+        }
+
+        checkIfListsExist(listsFullReport, this.results);
+        this.listsFullReport = List.copyOf(listsFullReport);
+    }
+
+    /**
+     * @return The date of the report.
+     */
+    public Calendar getReportDate() {
+        return reportDate;
+    }
+
+    /**
+     * @param reportDate the date of the report.
+     */
+    public void setReportDate(Calendar reportDate) {
+        this.reportDate = reportDate;
+    }    
 }

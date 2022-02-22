@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -59,17 +62,25 @@ public class Main
         "\t-o -> Overwrite results if they were already tested.\n" +
         "\tlists to test -> A set of lists to test.\n");
 
-        System.out.println("-> report <WEB | MAIL> <report.xlsx> <results folder> [lists to create a full report]");
+        System.out.println("-> report <WEB | MAIL> <report.xlsx> <results folder> [--date <day/month/year>] [lists to create a full report]");
         System.out.println("Create a report of the specified type based on the results provided.");
         System.out.println(
             "Options:\n"+
+            "\t--date -> The date of the report in <day/month/year> format.\n" +
             "\tlists to create a full report -> The report of the specified lists will have the full results.\n"
         );
     }
 
     private static void invalidArgs()
     {
-        System.err.println("Invalid arguments.");
+        System.err.println("Invalid arguments.\n");
+        printHelp();
+        System.exit(EXIT_ERROR_STATUS);
+    }
+
+    private static void invalidArgs(String msg)
+    {
+        System.err.println("Invalid arguments: " + msg + "\n");
         printHelp();
         System.exit(EXIT_ERROR_STATUS);
     }
@@ -147,19 +158,44 @@ public class Main
         try
         {
             RequestType type = RequestType.parseType(args.remove(0));
-            File report = new File(args.remove(0));
+            File reportLocation = new File(args.remove(0));
             File resultsFolder = new File(args.remove(0));
 
-            if (args.isEmpty())
-                Report.generateAndSaveReport(type, report, resultsFolder);
-            else
-                Report.generateAndSaveReport(type, report, resultsFolder, args);
+            Report report = new Report(type, resultsFolder);
 
+            if (!args.isEmpty() && args.get(0).equals("--date"))
+            {
+                args.remove(0);
+                report.setReportDate(parseDate(args));
+            }
+
+            if (!args.isEmpty())
+                report.setListsFullReport(args);
+
+            report.generateAndSaveReport(reportLocation);
             System.out.println("Report generated successfully.");
         }
         catch (Exception e) {
             System.err.println(e.getMessage());
             System.exit(EXIT_ERROR_STATUS);
         }
+    }
+
+    private static Calendar parseDate(List<String> args)
+    {
+        if (args.isEmpty())
+            invalidArgs("Expected a date.");
+
+        final String dateFormatStr = "dd/MM/yyyy";
+        final SimpleDateFormat dateFormat = new SimpleDateFormat(dateFormatStr);
+        final Calendar cal = Calendar.getInstance();
+
+        try {
+            cal.setTime(dateFormat.parse(args.remove(0)));
+        } catch (ParseException e) {
+            invalidArgs("Invalid date format specified.");
+        }
+
+        return cal;
     }
 }
