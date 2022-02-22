@@ -29,111 +29,54 @@ import observatory.util.ListTest;
 
 /**
  * A class to create a report from the results of a List.
- * 
- * TODO: extra fields...
  */
 public class ListReport
 {
-    private static final CellAddress FIRST_DOMAIN_ROW = new CellAddress("A13");
+    private static final CellAddress FIRST_DOMAIN_ROW = new CellAddress("A15");
 
-    private static final CellAddress ADDRESS_TESTED_DOMAINS = new CellAddress("B1");
+    private static final CellAddress ADDRESS_TESTED_DOMAINS = new CellAddress("B5");
 
-    private static final CellAddress ADDRESS_AVERAGE_SCORE = new CellAddress("C1");
+    private static final CellAddress ADDRESS_AVERAGE_SCORE = new CellAddress("C13");
 
     private static final Map<ResultStatus, CellAddress> ADDRESS_RESULT =
         Map.of
         (
-            ResultStatus.STATUS_SUCCESS, new CellAddress("B2"),
-            ResultStatus.STATUS_INFO, new CellAddress("B3"),
-            ResultStatus.STATUS_NOTICE, new CellAddress("B4"),
-            ResultStatus.STATUS_FAIL, new CellAddress("B5"),
-            ResultStatus.STATUS_NOT_TESTED, new CellAddress("B6"),
-            ResultStatus.STATUS_ERROR, new CellAddress("B7")
+            ResultStatus.STATUS_SUCCESS, new CellAddress("B6"),
+            ResultStatus.STATUS_INFO, new CellAddress("B7"),
+            ResultStatus.STATUS_NOTICE, new CellAddress("B8"),
+            ResultStatus.STATUS_FAIL, new CellAddress("B9"),
+            ResultStatus.STATUS_NOT_TESTED, new CellAddress("B10"),
+            ResultStatus.STATUS_ERROR, new CellAddress("B11")
         );
 
     private static final Map<Category, CellAddress> ADDRESS_CATEGORY =
         Map.of
         (
-            Category.WEB_IPV6, new CellAddress("F11"),
-            Category.WEB_DNSSEC, new CellAddress("M11"),
-            Category.WEB_HTTPS, new CellAddress("Q11"),
-            Category.WEB_APPSECPRIV, new CellAddress("AM11"),
+            Category.WEB_IPV6, new CellAddress("F2"),
+            Category.WEB_DNSSEC, new CellAddress("M2"),
+            Category.WEB_HTTPS, new CellAddress("Q2"),
+            Category.WEB_APPSECPRIV, new CellAddress("AM2"),
 
-            Category.MAIL_IPV6, new CellAddress("F11"),
-            Category.MAIL_DNSSEC, new CellAddress("L11"),
-            Category.MAIL_AUTH, new CellAddress("R11"),
-            Category.MAIL_STARTTLS, new CellAddress("Y11")
+            Category.MAIL_IPV6, new CellAddress("F2"),
+            Category.MAIL_DNSSEC, new CellAddress("L2"),
+            Category.MAIL_AUTH, new CellAddress("R2"),
+            Category.MAIL_STARTTLS, new CellAddress("Y2")
         );
 
     private static final Map<RequestType, Map<CustomTest, CellAddress>> ADDRESS_CUSTOM_FIELD =
         Map.of
         (
             RequestType.WEB,
-            Map.of(CustomTest.TLS_1_3_SUPPORT, new CellAddress("BB12")),
+            Map.of(CustomTest.TLS_1_3_SUPPORT, new CellAddress("AS3")),
 
             RequestType.MAIL,
             Map.of
             (
-                CustomTest.TLS_1_3_SUPPORT, new CellAddress("BJ12"),
-                CustomTest.MAIL_SENDING_DOMAIN, new CellAddress("BF12"),
-                CustomTest.MAIL_SERVER_TESTABLE, new CellAddress("BG12")
+                CustomTest.TLS_1_3_SUPPORT, new CellAddress("AR3"),
+                CustomTest.MAIL_SENDING_DOMAIN, new CellAddress("AS3"),
+                CustomTest.MAIL_SERVER_TESTABLE, new CellAddress("AT3")
             )
         );
-
-    // Extra fields...
-    /* private static final Map<ExtraField, CellAddress> ADDRESS_EXTRA_FIELD =
-        Map.ofEntries
-        (
-            Map.entry(ExtraField.WEB_DNSSEC, new CellAddress("AT12")),
-            Map.entry(ExtraField.WEB_TLS_AVAILABLE, new CellAddress("AU12")),
-            Map.entry(ExtraField.WEB_HTTPS_REDIRECT, new CellAddress("AW12")),
-            Map.entry(ExtraField.WEB_HSTS, new CellAddress("AX12")),
-            Map.entry(ExtraField.WEB_IPV6, new CellAddress("AY12")),
-            Map.entry(ExtraField.WEB_IPV6_NAME_SERVER, new CellAddress("AZ12")),
-            Map.entry(ExtraField.WEB_IPV6_WEB_SERVER, new CellAddress("BA12")),
-
-            Map.entry(ExtraField.MAIL_DMARC, new CellAddress("AS12")),
-            Map.entry(ExtraField.MAIL_DKIM, new CellAddress("AT12")),
-            Map.entry(ExtraField.MAIL_SPF, new CellAddress("AU12")),
-            Map.entry(ExtraField.MAIL_DMARC_POLICY, new CellAddress("AV12")),
-            Map.entry(ExtraField.MAIL_SPF_POLICY, new CellAddress("AW12")),
-            Map.entry(ExtraField.MAIL_STARTTLS, new CellAddress("AX12")),
-            Map.entry(ExtraField.MAIL_DNSSEC_MAILTO_EXIST, new CellAddress("AZ12")),
-            Map.entry(ExtraField.MAIL_DNSSEC_MX_EXIST, new CellAddress("BA12")),
-            Map.entry(ExtraField.MAIL_DANE, new CellAddress("BB12")),
-            Map.entry(ExtraField.MAIL_IPV6, new CellAddress("BC12")),
-            Map.entry(ExtraField.MAIL_IPV6_NAME_SERVER, new CellAddress("BD12")),
-            Map.entry(ExtraField.MAIL_IPV6_MAIL_SERVER, new CellAddress("BE12"))
-        );
-
-    private static final Map<ExtraField, CellAddress> EXTRA_FIELD_POINTS_TO_ADDRESS =
-        Stream.of(ExtraField.values())
-            .map
-            (
-                (extraField) ->
-                {
-                    CellAddress pointsTo;
-                    if (extraField.getCategory().isPresent())
-                        pointsTo = ADDRESS_CATEGORY.get(extraField.getCategory().get());
-                    else
-                    {
-                        Test test = extraField.getTest().get();
-                        Category category = test.getCategory();
-
-                        int index = Test.values(category).indexOf(test);
-
-                        CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
-
-                        pointsTo = new CellAddress(categoryAddress.getRow(),
-                            categoryAddress.getColumn() + 1 + index);
-                    }
-
-                    return Map.entry(extraField, pointsTo);
-                }
-            )
-            .collect(Collectors.toUnmodifiableMap(
-                (entry) -> entry.getKey(), (entry) -> entry.getValue())); */
-
 
     private static final Map<ResultStatus, IndexedColors> COLOR_BY_RESULT =
         Map.of
@@ -151,8 +94,8 @@ public class ListReport
 
     private static final Map<RequestType, Integer> LAST_RESULT_COLUMN =
         Map.of(
-            RequestType.WEB, new CellAddress("BB1").getColumn(),
-            RequestType.MAIL, new CellAddress("BJ1").getColumn()
+            RequestType.WEB, new CellAddress("AS1").getColumn(),
+            RequestType.MAIL, new CellAddress("AT1").getColumn()
         );
 
     
@@ -274,10 +217,13 @@ public class ListReport
         Cell cell = report.getRow(ADDRESS_AVERAGE_SCORE.getRow())
             .createCell(ADDRESS_AVERAGE_SCORE.getColumn(), CellType.FORMULA);
         
-        CellAddress range1, range2;
-        range1 = new CellAddress(FIRST_DOMAIN_ROW.getRow(), ADDRESS_AVERAGE_SCORE.getColumn());
-        range2 = new CellAddress(range1.getRow() + getTotalDomains() - 1, range1.getColumn());
-        cell.setCellFormula(String.format("AVERAGE(%s:%s)", range1.formatAsString(), range2.formatAsString()));
+        CellAddress rangeLeft, rangeRight;
+        rangeLeft = new CellAddress(FIRST_DOMAIN_ROW.getRow(), ADDRESS_AVERAGE_SCORE.getColumn());
+        rangeRight = new CellAddress(rangeLeft.getRow() + getTotalDomains() - 1, rangeLeft.getColumn());
+        CellRangeAddress range = new CellRangeAddress(rangeLeft.getRow(), rangeRight.getRow(),
+            rangeLeft.getColumn(), rangeRight.getColumn());
+
+        cell.setCellFormula(String.format("AVERAGE(%s)", range.formatAsString()));
     }
 
     //#region Domain Statistics
@@ -366,8 +312,6 @@ public class ListReport
         RequestType type = getType();
         for (Category category : Category.values(type))
             setDomainResults(domainRow, results, category);
-        
-        // TODO: set extra fields - points to...
 
         // custom fields
 
