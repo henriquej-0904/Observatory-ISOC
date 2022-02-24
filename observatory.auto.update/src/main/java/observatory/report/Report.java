@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.SortedMap;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -21,8 +21,8 @@ import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import observatory.internetnlAPI.config.RequestType;
-import observatory.util.ListTest;
-import observatory.util.Util;
+import observatory.tests.ListTest;
+import observatory.tests.collection.ListTestCollection;
 
 /**
  * Represents a Report based on the results provided.
@@ -40,7 +40,7 @@ public class Report
 
     private final RequestType type;
 
-    private final List<ListTest> results;
+    private final SortedMap<String, ListTest> results;
 
     private List<String> listsFullReport;
 
@@ -55,9 +55,11 @@ public class Report
     public Report(RequestType type, File resultsFolder) throws IOException
     {
         this.type = type;
-        this.results = Util.readResultsFromFolder(Objects.requireNonNull(resultsFolder), type);
-        this.listsFullReport = List.of();
         this.reportDate = Calendar.getInstance();
+        this.listsFullReport = List.of();
+        
+        ListTestCollection listTestCollection = new ListTestCollection(resultsFolder, type);
+        this.results = listTestCollection.getSortedResults();
     }
 
     /**
@@ -90,7 +92,7 @@ public class Report
             setReportDate(workbook, listResultsTemplate);
 
             // Generate List Reports.
-            for (ListTest listResults : results)
+            for (ListTest listResults : this.results.values())
             {
                 ListReport listReport = new ListReport(listResultsTemplate, listResults);
                 listReport.setFullReport(listsFullReport.contains(listResults.getName()));
@@ -145,18 +147,13 @@ public class Report
         }
     }
 
-    private static void checkIfListsExist(List<String> listsToConfirm, List<ListTest> lists)
+    private void checkIfListsExist(List<String> listsToConfirm)
     {
         if (listsToConfirm.isEmpty())
             return;
 
         listsToConfirm = new ArrayList<>(listsToConfirm);
-
-        List<String> availableLists = lists.stream()
-            .map((v) -> v.getName())
-            .collect(Collectors.toList());
-
-        listsToConfirm.removeAll(availableLists);
+        listsToConfirm.removeAll(this.results.keySet());
 
         if (!listsToConfirm.isEmpty())
             throw new IllegalArgumentException(
@@ -190,7 +187,7 @@ public class Report
             return;
         }
 
-        checkIfListsExist(listsFullReport, this.results);
+        checkIfListsExist(listsFullReport);
         this.listsFullReport = List.copyOf(listsFullReport);
     }
 

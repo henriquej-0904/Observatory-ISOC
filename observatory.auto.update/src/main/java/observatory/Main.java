@@ -2,6 +2,7 @@ package observatory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.text.ParseException;
@@ -11,11 +12,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+
 import observatory.internetnlAPI.InternetnlAPI;
 import observatory.internetnlAPI.InternetnlAPIOverNetwork;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.report.Report;
-import observatory.update.TestDomains;
+import observatory.tests.TestDomains;
 
 public class Main
 {
@@ -53,7 +56,7 @@ public class Main
     {
         System.out.println("Observatory commands:\n");
 
-        System.out.println("-> test <ALL | WEB | MAIL> <domains.xlsx> <results folder> [-o] [lists to test]");
+        System.out.println("-> test <ALL | WEB | MAIL> <domains.xlsx> <results folder> [--overwrite] [lists to test]");
         System.out.println("Test the lists of domains specified in the domains excel file and place "
         + "the results in the results folder.\n" +
         "If the results folder is not empty then this command " +
@@ -90,7 +93,7 @@ public class Main
         if (args.size() < 3)
             invalidArgs();
         
-        String type = args.remove(0).toUpperCase();
+        String typeStr = args.remove(0).toUpperCase();
         File domains = new File(args.remove(0));
         File resultsFolder = new File(args.remove(0));
 
@@ -101,7 +104,7 @@ public class Main
         else
         {
             String arg = args.get(0);
-            if (overwrite = arg.toLowerCase().equals("-o"))
+            if (overwrite = arg.toLowerCase().equals("--overwrite"))
                 args.remove(0);
         }
 
@@ -117,16 +120,25 @@ public class Main
                 new InternetnlAPIOverNetwork(new URI(endpoint), username, password);
         )
         {
-            TestDomains tests;
-            if (!args.isEmpty())
-                tests = new TestDomains(domains, args, resultsFolder, api);
+            if (typeStr.equals("ALL"))
+            {
+                RequestType[] types = RequestType.values();
+                for (RequestType type : types)
+                {
+                    try (TestDomains tests = initTestDomains(domains, resultsFolder, type, api, args);)
+                    {
+                        tests.Start(overwrite); 
+                    }
+                }
+            }
             else
-                tests = new TestDomains(domains, resultsFolder, api);
-
-            if (type.equals("ALL"))
-                tests.Start(overwrite);
-            else
-                tests.Start(RequestType.parseType(type), overwrite);
+            {
+                RequestType type = RequestType.parseType(typeStr);
+                try (TestDomains tests = initTestDomains(domains, resultsFolder, type, api, args);)
+                {
+                    tests.Start(overwrite); 
+                }
+            }
 
             System.out.println("All tests completed successfully!");
         }
@@ -134,6 +146,18 @@ public class Main
             System.err.println(e.getMessage());
             System.exit(EXIT_ERROR_STATUS);
         }
+    }
+
+    private static TestDomains initTestDomains(File domains, File resultsFolder,
+        RequestType type, InternetnlAPI api, List<String> args) throws InvalidFormatException, IOException
+    {
+        TestDomains tests;
+        if (!args.isEmpty())
+            tests = new TestDomains(domains, resultsFolder, api, type, args);
+        else
+            tests = new TestDomains(domains, resultsFolder, api, type);
+
+        return tests;
     }
 
     private static Properties getInternetnlAPI_BatchConfig()

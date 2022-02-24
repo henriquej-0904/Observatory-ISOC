@@ -1,24 +1,14 @@
 package observatory.internetnlAPI;
 
-import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Base64;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -30,6 +20,7 @@ import jakarta.ws.rs.core.Response.Status;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.TestInfo;
 import observatory.internetnlAPI.config.results.TestResult;
+import observatory.util.Result;
 
 public class InternetnlAPIOverNetwork implements InternetnlAPI
 {
@@ -67,98 +58,67 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
     }
 
     @Override
-    public TestInfo submit(File domains, String sheetName, RequestType requestType) throws InternetnlAPIException
+    public TestInfo submit(String name, String[] domains, RequestType type) throws InternetnlAPIException
     {
-        SubmitRequestInfo info = getRequestInfo(domains, sheetName, requestType);
+        SubmitRequestInfo info = new SubmitRequestInfo(name, type.getType(), domains);
 
-        return request(this.client.target(this.endpoint)
+        return checkResult(request(this.client.target(this.endpoint)
             .request().accept(MediaType.APPLICATION_JSON)
             .header(this.authHeader.getLeft(), this.authHeader.getRight())
-            .buildPost(Entity.json(info)), TestInfo.class);
+            .buildPost(Entity.json(info)), TestInfo.class));
     }
 
     @Override
-    public TestInfo status(String requestId) throws InternetnlAPIException
+    public TestInfo status(String requestId) throws TestIdNotFoundException, InternetnlAPIException
     {
-        return request(this.client.target(this.endpoint).path(requestId)
+        return checkResult(
+            request(this.client.target(this.endpoint).path(requestId)
             .request().accept(MediaType.APPLICATION_JSON)
             .header(this.authHeader.getLeft(), this.authHeader.getRight())
-            .buildGet(), TestInfo.class);
+            .buildGet(), TestInfo.class),
+
+            requestId);
     }
 
     @Override
-    public TestResult get(String requestId) throws InternetnlAPIException {
-        return request(this.client.target(this.endpoint).path(requestId)
+    public TestResult get(String requestId) throws TestIdNotFoundException, InternetnlAPIException {
+        return checkResult(
+            request(this.client.target(this.endpoint).path(requestId)
             .path("results")
             .request().accept(MediaType.APPLICATION_JSON)
             .header(this.authHeader.getLeft(), this.authHeader.getRight())
-            .buildGet(), TestResult.class);
+            .buildGet(), TestResult.class),
+
+            requestId);
     }
 
-    private SubmitRequestInfo getRequestInfo(File domains, String sheetName, RequestType requestType)
-        throws InternetnlAPIException
+    private <T> T checkResult(Result<T> result) throws InternetnlAPIException
     {
-        try
-        (
-            Workbook domainsExcel = new XSSFWorkbook(domains);
-        )
-        {
-            Sheet sheet = domainsExcel.getSheet(sheetName);
-
-            if (sheet == null)
-                throw new IllegalArgumentException(
-                    String.format("There is no list named %s in the specified domains file.", sheetName)
-                );
-
-            Iterator<Row> rows = sheet.iterator();
-
-            if (!rows.hasNext())
-                throw new IllegalArgumentException(
-                    String.format("Invalid format for domains file. There is no column named " + requestType.getType(), sheetName)
-                );
-
-            Row row = rows.next();
-            int column = -1;
-            // find column
-            for (Cell cell : row) {
-
-                String value = null;
-                try {
-                    value = cell.getStringCellValue();
-                } catch (Exception e) {}
-
-                if (value.equals(requestType.getType()))
-                    column = cell.getColumnIndex();
-            }
-
-            if (column == -1)
-                throw new IllegalArgumentException(
-                    String.format("Invalid format for domains file. There is no column named " + requestType.getType(), sheetName)
-                );
-
-            List<String> domainsList = new LinkedList<>();
-            while (rows.hasNext()) {
-                row = rows.next();
-                Cell cell = row.getCell(column);
-                String domain = null;
-                if (cell != null && cell.getCellType() == CellType.STRING
-                    && !(domain = cell.getStringCellValue()).isEmpty())
-                    domainsList.add(domain);
-            }
-            
-            if (domainsList.isEmpty())
-                throw new IllegalArgumentException(
-                    String.format("Invalid format for domains file. There are no domains to test. " + requestType.getType(), sheetName)
-                );
-
-            return new SubmitRequestInfo(sheetName, requestType.getType(), domainsList.toArray(new String[0]));
-        }
-        catch (Exception e) {
-            throw new InternetnlAPIException(e);
-        }
+        if (result.isOK())
+            return result.value();
+        
+        throw new InternetnlAPIException(
+            String.format("An error occurred calling the API: The server replied with code: %d - %s",
+            result.error().getStatusCode(), result.error().getReasonPhrase()
+            ));
     }
 
-    private <T> T request(Invocation invocation, Class<T> responseType) throws InternetnlAPIException
+    private <T> T checkResult(Result<T> result, String requestId)
+        throws TestIdNotFoundException, InternetnlAPIException
+    {
+        if (result.isOK())
+            return result.value();
+
+        if (result.error() == Status.NOT_FOUND)
+            throw new TestIdNotFoundException(requestId);
+        
+        throw new InternetnlAPIException(
+            String.format("An error occurred calling the API: The server replied with code: %d - %s",
+            result.error().getStatusCode(), result.error().getReasonPhrase()
+            ));
+    }
+
+    private <T> Result<T> request(Invocation invocation, Class<T> responseType) throws InternetnlAPIException
     {
         int numberTries = MAX_TRIES;
         InternetnlAPIException error = null;
@@ -167,19 +127,13 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
         {
             try (Response response = invocation.invoke();)
             {
-                if (response.getStatusInfo().toEnum() != Status.OK)
-                    throw new InternetnlAPIException(
-                        String.format("An error occurred calling the API: The server replied with code: %d - %s",
-                        response.getStatus(), response.getStatusInfo().getReasonPhrase()
-                        ));
-
-                return this.mapper.readValue(response.readEntity(InputStream.class), responseType);
+                return request(response, responseType);
             }
             catch (InternetnlAPIException e) {
                 error = e;
             }
             catch (Exception e) {
-                error = new InternetnlAPIException("An error occurred calling the API.");
+                error = new InternetnlAPIException("An error occurred calling the API.", e);
             }
 
             if (error != null)
@@ -193,6 +147,27 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
         }
 
         throw error;
+    }
+
+    private <T> Result<T> request(Response response, Class<T> responseType) throws InternetnlAPIException
+    {
+        Status status = response.getStatusInfo().toEnum();
+        if (status == Status.OK)
+        {
+            try
+            {
+                InputStream input = response.readEntity(InputStream.class);
+                T value = this.mapper.readValue(input, responseType);
+                return Result.ok(value);
+            } catch (Exception e)
+            {
+                throw new InternetnlAPIException("An error occurred calling the API.", e);
+            }
+        }
+        else if (status == Status.NO_CONTENT)
+            return Result.ok();
+        else
+            return Result.error(status);
     }
 
     @Override

@@ -25,7 +25,7 @@ import observatory.internetnlAPI.config.results.domain.DomainResults;
 import observatory.internetnlAPI.config.results.domain.ResultStatus;
 import observatory.internetnlAPI.config.results.domain.Results;
 import observatory.internetnlAPI.config.results.domain.Test;
-import observatory.util.ListTest;
+import observatory.tests.ListTest;
 
 /**
  * A class to create a report from the results of a List.
@@ -103,11 +103,7 @@ public class ListReport
 
     private final ListTest listResults;
 
-    //#region Report options
-
     private boolean fullReport;
-
-    //#endregion
 
     /**
      * Creates a new instance based on a report template and the results of a list.
@@ -163,11 +159,12 @@ public class ListReport
      */
     public Sheet generateReport()
     {
+        String[] domains = listResults.getTestedDomains();
         Map<String, DomainResults> resultsByDomain = listResults.getResults().getDomains();
         int testedDomains = 0;
 
         int currentDomainRow = FIRST_DOMAIN_ROW.getRow();
-        for (Entry<String, DomainResults> domainResults : resultsByDomain.entrySet())
+        for (String domain : domains)
         {
             Row row = report.createRow(currentDomainRow++);
             int currentColumn = FIRST_DOMAIN_ROW.getColumn();
@@ -175,8 +172,7 @@ public class ListReport
             // set list name
             row.createCell(currentColumn++, CellType.STRING).setCellValue(listResults.getName());
 
-            String domain = domainResults.getKey();
-            DomainResults results = domainResults.getValue();
+            DomainResults results = resultsByDomain.get(domain);
 
             // set domain url
             row.createCell(currentColumn++, CellType.STRING).setCellValue(domain);

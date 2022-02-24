@@ -1,10 +1,6 @@
-package observatory.update;
+package observatory.tests;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Objects;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import observatory.internetnlAPI.InternetnlAPI;
 import observatory.internetnlAPI.InternetnlAPIException;
@@ -22,30 +18,25 @@ public class RunningTest
     private static final long TIMEOUT_MILLIS = 30 * 1000;
 
 
-    private InternetnlAPI api;
+    private final InternetnlAPI api;
 
-    private String testId;
-
-    private File outputResults;
+    private final String testId;
 
     private TestResult result;
 
     /**
-     * Create a new RunningTest with the specified testId, output file and API.
+     * Create a new RunningTest with the specified testId and API.
      * 
      * @param testId
-     * @param outputResults
      * @param api
      */
-    public RunningTest(String testId, File outputResults, InternetnlAPI api)
+    public RunningTest(String testId, InternetnlAPI api)
     {
         Objects.requireNonNull(testId);
-        Objects.requireNonNull(outputResults);
         Objects.requireNonNull(api);
 
         this.testId = testId;
         this.api = api;
-        this.outputResults = outputResults;
     }
 
     /**
@@ -80,22 +71,25 @@ public class RunningTest
 
         while (!finished())
         {
-            try {
-                Thread.sleep(TIMEOUT_MILLIS);
-            } catch (Exception e) {}
+            sleep(TIMEOUT_MILLIS);
         }
 
+        sleep(5 * 1000);
         this.result = this.api.get(this.testId);
         return this.result;
     }
 
     /**
-     * Dump the result of the test.
-     * @throws InternetnlAPIException
-     * @throws IOException
+     * @return the testId
      */
-    public void dump() throws InternetnlAPIException, IOException
+    public String getTestId() {
+        return testId;
+    }
+
+    private void sleep(long time)
     {
-        new ObjectMapper().writeValue(this.outputResults, waitFor());
+        try {
+            Thread.sleep(time);
+        } catch (Exception e) {}
     }
 }

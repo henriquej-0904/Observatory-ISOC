@@ -1,10 +1,15 @@
 package observatory.util;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
 import observatory.internetnlAPI.config.RequestType;
 
@@ -15,33 +20,57 @@ public class Util
         return new File(resultsFolder, type.getType());
     }
 
-    public static List<ListTest> readResultsFromFolder(File resultsFolder, RequestType type) throws IOException
+    public static String[] getDomainsList(Workbook domains, String sheetName, RequestType type)
     {
-        resultsFolder = getResultsFolder(resultsFolder, type);
+        Sheet sheet = domains.getSheet(sheetName);
 
-        File[] results = resultsFolder.listFiles(
-            (folder, name) -> name.endsWith(".json")
-        );
+        if (sheet == null)
+            throw new IllegalArgumentException(
+                String.format("There is no list named %s in the specified domains file.", sheetName)
+            );
 
-        if (results == null || results.length == 0)
-            throw new IllegalArgumentException("The specified results folder is invalid.");
+        Iterator<Row> rows = sheet.iterator();
 
-        try
+        if (!rows.hasNext())
+            throw new IllegalArgumentException(
+                String.format("Invalid format for domains file. There is no column named " + type.getType(), sheetName)
+            );
+
+        Row row = rows.next();
+        int column = -1;
+        // find column
+        for (Cell cell : row)
         {
-            return Stream.of(results)
-                .map((result) ->
-                {
-                    try
-                    {
-                        return new ListTest(result);
-                    } catch (IOException e) {
-                        throw new IllegalArgumentException(e);
-                    }
-                })
-                .sorted((v1, v2) ->  String.CASE_INSENSITIVE_ORDER.compare(v1.getName(), v2.getName()))
-                .collect(Collectors.toUnmodifiableList());
-        } catch (IllegalArgumentException e) {
-            throw (IOException)e.getCause();
+            String value = null;
+            try {
+                value = cell.getStringCellValue();
+            } catch (Exception e) {}
+
+            if (value.equals(type.getType()))
+                column = cell.getColumnIndex();
         }
+
+        if (column == -1)
+            throw new IllegalArgumentException(
+                String.format("Invalid format for domains file. There is no column named " + type.getType(), sheetName)
+            );
+
+        List<String> domainsList = new LinkedList<>();
+        while (rows.hasNext())
+        {
+            row = rows.next();
+            Cell cell = row.getCell(column);
+            String domain = null;
+            if (cell != null && cell.getCellType() == CellType.STRING
+                && !(domain = cell.getStringCellValue()).isEmpty())
+                domainsList.add(domain);
+        }
+            
+        if (domainsList.isEmpty())
+            throw new IllegalArgumentException(
+                String.format("Invalid format for domains file. There are no domains to test. " + type.getType(), sheetName)
+            );
+        
+        return domainsList.toArray(new String[0]);
     }
 }
