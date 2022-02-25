@@ -32,9 +32,9 @@ import observatory.tests.ListTest;
  */
 public class ListReport
 {
-    private static final CellAddress FIRST_DOMAIN_ROW = new CellAddress("A15");
+    private static final CellAddress ADDRESS_FIRST_DOMAIN = new CellAddress("A15");
 
-    private static final CellAddress ADDRESS_TESTED_DOMAINS = new CellAddress("B5");
+    private static final CellAddress ADDRESS_NUMBER_TESTED_DOMAINS = new CellAddress("B5");
 
     private static final CellAddress ADDRESS_AVERAGE_SCORE = new CellAddress("C13");
 
@@ -136,17 +136,28 @@ public class ListReport
         this.fullReport = fullReport;
     }
 
-
+    /**
+     * Get the total domains.
+     * @return The total domains.
+     */
     public int getTotalDomains()
     {
         return this.listResults.getResults().getDomains().size();
     }
 
+    /**
+     * Get the type of report.
+     * @return The type of report.
+     */
     public RequestType getType()
     {
         return getInternetnlRequest().getRequest_type();
     }
 
+    /**
+     * Get the internet nl request.
+     * @return The internet nl request.
+     */
     private InternetnlRequest getInternetnlRequest()
     {
         return this.listResults.getResults().getRequest();
@@ -163,11 +174,11 @@ public class ListReport
         Map<String, DomainResults> resultsByDomain = listResults.getResults().getDomains();
         int testedDomains = 0;
 
-        int currentDomainRow = FIRST_DOMAIN_ROW.getRow();
+        int currentDomainRow = ADDRESS_FIRST_DOMAIN.getRow();
         for (String domain : domains)
         {
             Row row = report.createRow(currentDomainRow++);
-            int currentColumn = FIRST_DOMAIN_ROW.getColumn();
+            int currentColumn = ADDRESS_FIRST_DOMAIN.getColumn();
 
             // set list name
             row.createCell(currentColumn++, CellType.STRING).setCellValue(listResults.getName());
@@ -205,6 +216,9 @@ public class ListReport
         return report;
     }
 
+    /**
+     * Set the average score.
+     */
     private void setAverageScore()
     {
         if (getTotalDomains() == 0)
@@ -214,7 +228,7 @@ public class ListReport
             .createCell(ADDRESS_AVERAGE_SCORE.getColumn(), CellType.FORMULA);
         
         CellAddress rangeLeft, rangeRight;
-        rangeLeft = new CellAddress(FIRST_DOMAIN_ROW.getRow(), ADDRESS_AVERAGE_SCORE.getColumn());
+        rangeLeft = new CellAddress(ADDRESS_FIRST_DOMAIN.getRow(), ADDRESS_AVERAGE_SCORE.getColumn());
         rangeRight = new CellAddress(rangeLeft.getRow() + getTotalDomains() - 1, rangeLeft.getColumn());
         CellRangeAddress range = new CellRangeAddress(rangeLeft.getRow(), rangeRight.getRow(),
             rangeLeft.getColumn(), rangeRight.getColumn());
@@ -224,6 +238,10 @@ public class ListReport
 
     //#region Domain Statistics
 
+    /**
+     * Set the domain statistics given the results.
+     * @param results
+     */
     private void setDomainStatistics(Results results)
     {
         for (Category category : Category.values(getType()))
@@ -232,6 +250,11 @@ public class ListReport
         setCustomFieldStatistics(results);
     }
 
+    /**
+     * Set the domain statistics of the specified category given the results.
+     * @param results
+     * @param category
+     */
     private void setDomainStatistics(Results results, Category category)
     {
         CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
@@ -247,6 +270,10 @@ public class ListReport
         }
     }
 
+    /**
+     * Set the custom field statistics given the results.
+     * @param results
+     */
     private void setCustomFieldStatistics(Results results)
     {
         RequestType type = getType();
@@ -260,6 +287,11 @@ public class ListReport
         }
     }
 
+    /**
+     * Increment the value of a numeric cell.
+     * @param result
+     * @param column
+     */
     private void incCell(ResultStatus result, int column)
     {
         Cell cell = this.report.getRow(ADDRESS_RESULT.get(result).getRow()).getCell(column);
@@ -271,10 +303,14 @@ public class ListReport
 
     //#region Set number tested domains
 
+    /**
+     * Set the number of tested domains.
+     * @param testedDomains
+     */
     private void setTestedDomains(int testedDomains)
     {
         RequestType type  = getType();
-        Row row = this.report.getRow(ADDRESS_TESTED_DOMAINS.getRow());
+        Row row = this.report.getRow(ADDRESS_NUMBER_TESTED_DOMAINS.getRow());
         for (Category category : Category.values(type))
             setTestedDomains(row, category, testedDomains);
 
@@ -345,12 +381,15 @@ public class ListReport
 
     //#endregion
 
+    /**
+     * Set the conditional formatting (colors in results).
+     */
     private void setConditionalFormatting()
     {
         SheetConditionalFormatting formatting = this.report.getSheetConditionalFormatting();
 
         // calculate results range
-        CellAddress firstAddress = new CellAddress(FIRST_DOMAIN_ROW.getRow(), FIRST_RESULT_COLUMN);
+        CellAddress firstAddress = new CellAddress(ADDRESS_FIRST_DOMAIN.getRow(), FIRST_RESULT_COLUMN);
         CellAddress lastAddress = new CellAddress(firstAddress.getRow() + getTotalDomains() - 1,
             LAST_RESULT_COLUMN.get(getType()));
         CellRangeAddress range = new CellRangeAddress(

@@ -1,10 +1,12 @@
 package observatory.internetnlAPI;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.TestInfo;
@@ -26,26 +28,20 @@ public interface InternetnlAPI extends AutoCloseable
      * @return Information about the test.
      * 
      * @throws IOException If an error occured while reading the domains file.
+     * @throws InvalidFormatException If the file is not a workbook or it is corrupted.
      * @throws InternetnlAPIException In case of an error while executing the operation.
      */
     default TestInfo submit(File domains, String sheetName, RequestType type)
-        throws IOException, InternetnlAPIException
+        throws IOException, InvalidFormatException, InternetnlAPIException
     {
         String[] domainsList = null;
         try
         (
-            Workbook domainsExcel = new XSSFWorkbook(domains);
+            InputStream inputStream = new FileInputStream(domains);
+            Workbook workbook = Util.openWorkbook(inputStream);
         )
         {
-            domainsList = Util.getDomainsList(domainsExcel, sheetName, type);
-        } catch (IOException e) {
-            throw e;
-        }
-        catch (RuntimeException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            throw new IOException(e);
+            domainsList = Util.getDomainsList(workbook, sheetName, type);
         }
 
         return submit(sheetName, domainsList, type);

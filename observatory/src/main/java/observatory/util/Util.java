@@ -1,15 +1,19 @@
 package observatory.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import observatory.internetnlAPI.config.RequestType;
 
@@ -18,6 +22,16 @@ public class Util
     public static File getResultsFolder(File resultsFolder, RequestType type)
     {
         return new File(resultsFolder, type.getType());
+    }
+
+    public static Workbook openWorkbook(File workbookFile) throws InvalidFormatException, IOException
+    {
+        return new XSSFWorkbook(workbookFile);
+    }
+
+    public static Workbook openWorkbook(InputStream workbookInputStream) throws InvalidFormatException, IOException
+    {
+        return new XSSFWorkbook(workbookInputStream);
     }
 
     public static String[] getDomainsList(Workbook domains, String sheetName, RequestType type)

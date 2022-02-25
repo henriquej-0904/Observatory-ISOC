@@ -62,7 +62,7 @@ public class Main
         "If the results folder is not empty then this command " +
         "will test all the remaining lists.\n" +
         "Options:\n"+
-        "\t-o -> Overwrite results if they were already tested.\n" +
+        "\t--overwrite -> Overwrite results if they were already tested.\n" +
         "\tlists to test -> A set of lists to test.\n");
 
         System.out.println("-> report <WEB | MAIL> <report.xlsx> <results folder> [--date <day/month/year>] [lists to create a full report]");
@@ -116,7 +116,6 @@ public class Main
         try
         (
             InternetnlAPI api =
-                //new InternetnlAPIWithPythonScripts(new File("internet.nl-python-scripts/batch.py"));
                 new InternetnlAPIOverNetwork(new URI(endpoint), username, password);
         )
         {
@@ -127,7 +126,7 @@ public class Main
                 {
                     try (TestDomains tests = initTestDomains(domains, resultsFolder, type, api, args);)
                     {
-                        tests.Start(overwrite); 
+                        tests.start(overwrite); 
                     }
                 }
             }
@@ -136,7 +135,7 @@ public class Main
                 RequestType type = RequestType.parseType(typeStr);
                 try (TestDomains tests = initTestDomains(domains, resultsFolder, type, api, args);)
                 {
-                    tests.Start(overwrite); 
+                    tests.start(overwrite); 
                 }
             }
 

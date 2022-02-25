@@ -2,7 +2,9 @@ package observatory.tests;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -11,7 +13,6 @@ import java.util.logging.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import observatory.internetnlAPI.InternetnlAPI;
 import observatory.internetnlAPI.InternetnlAPIException;
@@ -30,6 +31,7 @@ public class TestDomains implements Closeable
 {
     private static Logger log = Logger.getLogger(TestDomains.class.getSimpleName());
 
+    private final InputStream domainsInputStream;
     private final Workbook domains;
 
     private final List<String> listsToTest;
@@ -53,7 +55,8 @@ public class TestDomains implements Closeable
     public TestDomains(File domains, File resultsFolder, InternetnlAPI api, RequestType type)
         throws IOException, InvalidFormatException
     {
-        this.domains = new XSSFWorkbook(domains);
+        this.domainsInputStream = new FileInputStream(domains);
+        this.domains = Util.openWorkbook(this.domainsInputStream);
         this.type = type;
         this.listTestCollection = new ListTestCollection(resultsFolder, type);
 
@@ -82,7 +85,8 @@ public class TestDomains implements Closeable
     public TestDomains(File domains, File resultsFolder,
         InternetnlAPI api, RequestType type, List<String> listsOfDomains) throws IOException, InvalidFormatException
     {
-        this.domains = new XSSFWorkbook(domains);
+        this.domainsInputStream = new FileInputStream(domains);
+        this.domains = Util.openWorkbook(this.domainsInputStream);
         this.type = type;
         this.listTestCollection = new ListTestCollection(resultsFolder, type);
 
@@ -108,7 +112,7 @@ public class TestDomains implements Closeable
      * @throws InternetnlAPIException
      * @throws IOException
      */
-    public void Start(boolean overwrite) throws InternetnlAPIException, IOException
+    public void start(boolean overwrite) throws InternetnlAPIException, IOException
     {
         for (String list : this.listsToTest)
             testList(list, overwrite);
@@ -212,6 +216,7 @@ public class TestDomains implements Closeable
     @Override
     public void close() throws IOException
     {
+        this.domainsInputStream.close();
         this.domains.close();
     }    
 }

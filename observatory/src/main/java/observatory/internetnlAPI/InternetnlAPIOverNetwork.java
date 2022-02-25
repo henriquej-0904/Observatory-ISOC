@@ -22,6 +22,9 @@ import observatory.internetnlAPI.config.TestInfo;
 import observatory.internetnlAPI.config.results.TestResult;
 import observatory.util.Result;
 
+/**
+ * An implementation of InternetnlAPI that communicates via HTTP.
+ */
 public class InternetnlAPIOverNetwork implements InternetnlAPI
 {
     private static final int MAX_TRIES = 3;
@@ -39,6 +42,8 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
 
 
     /**
+     * Creates a new HTTP client to communicate with the Internetnl API.
+     * 
      * @param endpoint
      * @param username
      * @param password
@@ -92,6 +97,13 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
             requestId);
     }
 
+    /**
+     * Check the result for HTTP errors.
+     * @param <T> - The type of the response.
+     * @param result - The result wrapper of the specified type.
+     * @return The result.
+     * @throws InternetnlAPIException If an error occurrs.
+     */
     private <T> T checkResult(Result<T> result) throws InternetnlAPIException
     {
         if (result.isOK())
@@ -103,6 +115,15 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
             ));
     }
 
+    /**
+     * Check the result for HTTP errors.
+     * @param <T> - The type of the response.
+     * @param result - The result wrapper of the specified type.
+     * @param requestId - The request id of the submitted test.
+     * @return The result.
+     * @throws TestIdNotFoundException If the specified request id does not exist.
+     * @throws InternetnlAPIException If an error occurrs.
+     */
     private <T> T checkResult(Result<T> result, String requestId)
         throws TestIdNotFoundException, InternetnlAPIException
     {
@@ -118,6 +139,14 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
             ));
     }
 
+    /**
+     * Send a HTTP request.
+     * @param <T> - The type of the response.
+     * @param invocation
+     * @param responseType - The class object of the response type.
+     * @return A result of the specified type.
+     * @throws InternetnlAPIException If an error occurrs.
+     */
     private <T> Result<T> request(Invocation invocation, Class<T> responseType) throws InternetnlAPIException
     {
         int numberTries = MAX_TRIES;
@@ -127,7 +156,7 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
         {
             try (Response response = invocation.invoke();)
             {
-                return request(response, responseType);
+                return parseResponse(response, responseType);
             }
             catch (InternetnlAPIException e) {
                 error = e;
@@ -149,7 +178,15 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
         throw error;
     }
 
-    private <T> Result<T> request(Response response, Class<T> responseType) throws InternetnlAPIException
+    /**
+     * Parse the response to the specified type.
+     * @param <T> - The type of the response.
+     * @param response
+     * @param responseType - The class object of the response type.
+     * @return A result of the specified type.
+     * @throws InternetnlAPIException If an error occurrs.
+     */
+    private <T> Result<T> parseResponse(Response response, Class<T> responseType) throws InternetnlAPIException
     {
         Status status = response.getStatusInfo().toEnum();
         if (status == Status.OK)
