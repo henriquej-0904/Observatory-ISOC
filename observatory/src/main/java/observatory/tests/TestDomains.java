@@ -193,6 +193,9 @@ public class TestDomains implements Closeable
         String testId = testInfo.getRequest().getRequest_id();
         log.info(String.format("Started %s test on list %s with id %s", type.getType(), list, testId));
 
+        // print test ID in stderr
+        System.err.println(testId);
+
         // save id in case of an error.
         listTestCollection.saveTestId(list, testId);
 
