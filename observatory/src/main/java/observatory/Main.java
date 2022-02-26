@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
@@ -152,7 +153,7 @@ public class Main
     {
         TestDomains tests;
         if (!args.isEmpty())
-            tests = new TestDomains(domains, resultsFolder, api, type, args);
+            tests = new TestDomains(domains, resultsFolder, api, type, Set.copyOf(args));
         else
             tests = new TestDomains(domains, resultsFolder, api, type);
 
@@ -193,7 +194,7 @@ public class Main
             }
 
             if (!args.isEmpty())
-                report.setListsFullReport(args);
+                report.setListsFullReport(Set.copyOf(args));
 
             report.generateAndSaveReport(reportLocation);
             System.out.println("Report generated successfully.");

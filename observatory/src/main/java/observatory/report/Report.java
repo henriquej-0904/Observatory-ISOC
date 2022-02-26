@@ -6,11 +6,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedMap;
+import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -42,7 +42,7 @@ public class Report
 
     private final SortedMap<String, ListTest> results;
 
-    private List<String> listsFullReport;
+    private Set<String> listsFullReport;
 
     private Calendar reportDate;
 
@@ -56,7 +56,7 @@ public class Report
     {
         this.type = type;
         this.reportDate = Calendar.getInstance();
-        this.listsFullReport = List.of();
+        this.listsFullReport = Set.of();
         
         ListTestCollection listTestCollection = new ListTestCollection(resultsFolder, type);
         this.results = listTestCollection.getSortedResults();
@@ -156,17 +156,20 @@ public class Report
      * Check if the results of the specified lists are available.
      * @param listsToConfirm
      */
-    private void checkIfListsExist(List<String> listsToConfirm)
+    private Set<String> checkLists(Set<String> listsToCheck)
     {
-        if (listsToConfirm.isEmpty())
-            return;
+        listsToCheck = listsToCheck.stream()
+            .map(String::toUpperCase)
+            .collect(Collectors.toSet());
+        
+        Set<String> toReturn = Set.copyOf(listsToCheck);
+        listsToCheck.removeAll(this.results.keySet());
 
-        listsToConfirm = new ArrayList<>(listsToConfirm);
-        listsToConfirm.removeAll(this.results.keySet());
-
-        if (!listsToConfirm.isEmpty())
+        if (!listsToCheck.isEmpty())
             throw new IllegalArgumentException(
-                "The results of the specified lists are not available: " + listsToConfirm.toString());
+                "The results of the specified lists are not available: " + listsToCheck.toString());
+
+        return toReturn;
     }
 
     /**
@@ -179,7 +182,7 @@ public class Report
     /**
      * @return The lists that will have a full report of the results.
      */
-    public List<String> getListsFullReport() {
+    public Set<String> getListsFullReport() {
         return listsFullReport;
     }
 
@@ -188,16 +191,15 @@ public class Report
      * 
      * @throws IllegalArgumentException if the results of the specified lists are not available.
      */
-    public void setListsFullReport(List<String> listsFullReport) throws IllegalArgumentException
+    public void setListsFullReport(Set<String> listsFullReport) throws IllegalArgumentException
     {
         if (listsFullReport == null || listsFullReport.isEmpty())
         {
-            this.listsFullReport = List.of();
+            this.listsFullReport = Set.of();
             return;
         }
 
-        checkIfListsExist(listsFullReport);
-        this.listsFullReport = List.copyOf(listsFullReport);
+        this.listsFullReport = checkLists(listsFullReport);
     }
 
     /**

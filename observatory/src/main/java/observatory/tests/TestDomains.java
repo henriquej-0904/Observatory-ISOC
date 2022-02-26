@@ -5,10 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -34,7 +36,7 @@ public class TestDomains implements Closeable
     private final InputStream domainsInputStream;
     private final Workbook domains;
 
-    private final List<String> listsToTest;
+    private final SortedSet<String> listsToTest;
 
     private final InternetnlAPI api;
 
@@ -63,7 +65,7 @@ public class TestDomains implements Closeable
         if (this.domains.getNumberOfSheets() == 0)
             throw new IllegalArgumentException("There is no domains to test.");
 
-        this.listsToTest = new ArrayList<>(this.domains.getNumberOfSheets());
+        this.listsToTest = new TreeSet<>();
 
         for (Sheet sheet : this.domains)
             this.listsToTest.add(sheet.getSheetName());
@@ -78,12 +80,12 @@ public class TestDomains implements Closeable
      * @param resultsFolder - The folder to output the results.
      * @param api - The Internet.nl API.
      * @param type - The type of test.
-     * @param listsOfDomains - The name of the lists to test.
+     * @param listsToTest - The name of the lists to test.
      * @throws IOException
      * @throws InvalidFormatException
      */
     public TestDomains(File domains, File resultsFolder,
-        InternetnlAPI api, RequestType type, List<String> listsOfDomains) throws IOException, InvalidFormatException
+        InternetnlAPI api, RequestType type, Set<String> listsToTest) throws IOException, InvalidFormatException
     {
         this.domainsInputStream = new FileInputStream(domains);
         this.domains = Util.openWorkbook(this.domainsInputStream);
@@ -93,15 +95,32 @@ public class TestDomains implements Closeable
         if (this.domains.getNumberOfSheets() == 0)
             throw new IllegalArgumentException("There is no domains to test.");
 
-        for (String list : Objects.requireNonNull(listsOfDomains)) {
-            if (this.domains.getSheet(list) == null)
+        this.listsToTest = checkListsToTest(Objects.requireNonNull(listsToTest), this.domains);
+        this.api = Objects.requireNonNull(api);
+    }
+
+    /**
+     * Check the lists to test.
+     * 
+     * @param listsToTest
+     * @param domains
+     * @return An ordered set of lists.
+     */
+    private static SortedSet<String> checkListsToTest(Set<String> listsToTest, Workbook domains)
+    {
+        SortedSet<String> toReturn =
+        listsToTest.stream()
+        .map(String::toUpperCase)
+        .collect(Collectors.toCollection(() -> new TreeSet<String>()));
+
+        for (String list : toReturn) {
+            if (domains.getSheet(list) == null)
                 throw new IllegalArgumentException(
                     String.format("There is no list named %s in the specified domains file.", list)
                 );
         }
 
-        this.listsToTest = List.copyOf(listsOfDomains);
-        this.api = Objects.requireNonNull(api);
+        return toReturn;
     }
 
     /**
@@ -202,6 +221,16 @@ public class TestDomains implements Closeable
         return new RunningTest(testId, this.api);
     }
 
+    /**
+     * Waits and saves the results of a list test.
+     * 
+     * @param test - The test.
+     * @param list - The name of the list.
+     * @param domainsList - The list of domains.
+     * @return The results of the test.
+     * @throws IOException If an error occurred while saving the results.
+     * @throws InternetnlAPIException
+     */
     private ListTest waitAndSaveResults(RunningTest test, String list, String[] domainsList)
         throws IOException, InternetnlAPIException
     {
