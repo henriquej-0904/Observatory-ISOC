@@ -30,8 +30,8 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
     private static final int MAX_TRIES = 3;
     private static final int TIMEOUT_MILLIS = 15 * 1000;
 
-    private static final int CONNECT_TIMEOUT = 5;
-    private static final int READ_TIMEOUT = 10;
+    private static final int CONNECT_TIMEOUT = 60;
+    private static final int READ_TIMEOUT = 60 * 3;
 
     private Client client;
     private URI endpoint;
@@ -109,10 +109,7 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
         if (result.isOK())
             return result.value();
         
-        throw new InternetnlAPIException(
-            String.format("An error occurred calling the API: The server replied with code: %d - %s",
-            result.error().getStatusCode(), result.error().getReasonPhrase()
-            ));
+        throw statusCodeError(result.error());
     }
 
     /**
@@ -133,10 +130,7 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
         if (result.error() == Status.NOT_FOUND)
             throw new TestIdNotFoundException(requestId);
         
-        throw new InternetnlAPIException(
-            String.format("An error occurred calling the API: The server replied with code: %d - %s",
-            result.error().getStatusCode(), result.error().getReasonPhrase()
-            ));
+        throw statusCodeError(result.error());
     }
 
     /**
@@ -156,7 +150,16 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
         {
             try (Response response = invocation.invoke();)
             {
-                return parseResponse(response, responseType);
+                Result<T> result = parseResponse(response, responseType);
+
+                if (result.error() != Status.BAD_REQUEST)
+                    return result;
+
+                /**
+                 * sometimes the server responds with 400.
+                 * Try again...
+                **/
+                error = statusCodeError(result.error());
             }
             catch (InternetnlAPIException e) {
                 error = e;
@@ -205,6 +208,14 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
             return Result.ok();
         else
             return Result.error(status);
+    }
+
+    private InternetnlAPIException statusCodeError(Status status)
+    {
+        return new InternetnlAPIException(
+            String.format("An error occurred calling the API: The server replied with code: %d - %s",
+            status.getStatusCode(), status.getReasonPhrase()
+            ));
     }
 
     @Override
