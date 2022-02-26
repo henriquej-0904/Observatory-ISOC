@@ -305,7 +305,7 @@ public class ListReport
 
     /**
      * Set the number of tested domains.
-     * @param testedDomains
+     * @param testedDomains - The number of tested domains to set.
      */
     private void setTestedDomains(int testedDomains)
     {
@@ -319,6 +319,12 @@ public class ListReport
             setTestedDomains(row, customCellAddress.getColumn(), testedDomains);
     }
 
+    /**
+     * Set the number of tested domains.
+     * @param row - The current row.
+     * @param category - The category.
+     * @param testedDomains - The number of tested domains to set.
+     */
     private void setTestedDomains(Row row, Category category, int testedDomains)
     {
         CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
@@ -330,6 +336,12 @@ public class ListReport
             setTestedDomains(row, currentColumn++, testedDomains);
     }
 
+    /**
+     * Set the number of tested domains.
+     * @param row - The current row.
+     * @param column - The current column.
+     * @param testedDomains - The number of tested domains to set.
+     */
     private void setTestedDomains(Row row, int column, int testedDomains)
     {
         row.getCell(column).setCellValue(testedDomains);
@@ -339,6 +351,12 @@ public class ListReport
 
     //#region Set Domain Results - Full report
 
+    /**
+     * Set the specific results of a domain.
+     * 
+     * @param domainRow
+     * @param results
+     */
     private void setDomainResults(Row domainRow, Results results)
     {
         RequestType type = getType();
@@ -358,6 +376,13 @@ public class ListReport
         }
     }
 
+    /**
+     * Set the specific results of a domain.
+     * 
+     * @param domainRow
+     * @param results
+     * @param category
+     */
     private void setDomainResults(Row domainRow, Results results, Category category)
     {
         CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
@@ -373,6 +398,13 @@ public class ListReport
         }
     }
 
+    /**
+     * Set the specific results of a domain.
+     * 
+     * @param domainRow
+     * @param column
+     * @param result
+     */
     private void setDomainResult(Row domainRow, int column, ResultStatus result)
     {
         Cell cell = domainRow.createCell(column, CellType.STRING);

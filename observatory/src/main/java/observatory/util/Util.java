@@ -19,21 +19,51 @@ import observatory.internetnlAPI.config.RequestType;
 
 public class Util
 {
+    /**
+     * Get the results location of the specified type.
+     * @param resultsFolder - The results root directory.
+     * @param type - The type of results.
+     * 
+     * @return The results location of the specified type.
+     */
     public static File getResultsFolder(File resultsFolder, RequestType type)
     {
         return new File(resultsFolder, type.getType());
     }
 
+    /**
+     * Open a workbook from a file.
+     * @param workbookFile
+     * @return The workbook.
+     * @throws InvalidFormatException
+     * @throws IOException
+     */
     public static Workbook openWorkbook(File workbookFile) throws InvalidFormatException, IOException
     {
         return new XSSFWorkbook(workbookFile);
     }
 
+    /**
+     * Open a workbook from a input stream (read-only).
+     * 
+     * @param workbookInputStream
+     * @return The workbook.
+     * @throws InvalidFormatException
+     * @throws IOException
+     */
     public static Workbook openWorkbook(InputStream workbookInputStream) throws InvalidFormatException, IOException
     {
         return new XSSFWorkbook(workbookInputStream);
     }
 
+    /**
+     * Get a list of domains from the specified sheet name.
+     * 
+     * @param domains
+     * @param sheetName
+     * @param type
+     * @return A list of domains.
+     */
     public static String[] getDomainsList(Workbook domains, String sheetName, RequestType type)
     {
         Sheet sheet = domains.getSheet(sheetName);

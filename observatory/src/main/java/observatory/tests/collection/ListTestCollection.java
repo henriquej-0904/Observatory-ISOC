@@ -24,6 +24,12 @@ public class ListTestCollection
 
     private Index index;
 
+    /**
+     * Initializes a new collection of results from the specified directory and type.
+     * 
+     * @param resultsFolder - The directory with the results.
+     * @param type - The type of results.
+     */
     public ListTestCollection(File resultsFolder, RequestType type)
     {
         this.resultsFolder = Util.getResultsFolder(Objects.requireNonNull(resultsFolder), type);
@@ -34,6 +40,13 @@ public class ListTestCollection
         this.index = getIndex(this.resultsFolder);
     }
 
+    /**
+     * Save the test id of the specified list.
+     * 
+     * @param list - The name of the list associated with the testId.
+     * @param testId - The id of the test.
+     * @throws IOException
+     */
     public void saveTestId(String list, String testId) throws IOException
     {
         ListInfo info = this.index.getIndex().get(list);
@@ -47,6 +60,11 @@ public class ListTestCollection
         saveIndex();
     }
 
+    /**
+     * Get info about a list.
+     * @param list
+     * @return List info.
+     */
     public ListInfo getListInfo(String list)
     {
         ListInfo info = this.index.getIndex().get(list);
@@ -56,6 +74,13 @@ public class ListTestCollection
         return info;
     }
 
+    /**
+     * Get the results of a list.
+     * 
+     * @param list
+     * @return The results of a list.
+     * @throws IOException
+     */
     public ListTest getListResults(String list) throws IOException
     {
         ListInfo info = getListInfo(list);
@@ -72,6 +97,12 @@ public class ListTestCollection
         }
     }
 
+    /**
+     * Save the results of list.
+     * 
+     * @param list
+     * @throws IOException
+     */
     public void saveListResults(ListTest list) throws IOException
     {
         this.index.getIndex().put(list.getName(),
@@ -91,16 +122,34 @@ public class ListTestCollection
         }
     }
 
+    /**
+     * Get the results of all lists.
+     * @return A collection of results.
+     * @throws IOException
+     */
     public Map<String, ListTest> getResults() throws IOException
     {
         return getResults(new HashMap<>());
     }
 
+    /**
+     * Get the results of all lists ordered by the name of the list.
+     * @return An ordered collection of results.
+     * @throws IOException
+     */
     public SortedMap<String, ListTest> getSortedResults() throws IOException
     {
         return (SortedMap<String, ListTest>) getResults(new TreeMap<>());
     }
 
+    /**
+     * Get the results of all lists.
+     * 
+     * @param result - The collection to put the results.
+     * 
+     * @return The same collection passed in the function arg.
+     * @throws IOException
+     */
     private Map<String, ListTest> getResults(Map<String, ListTest> result) throws IOException
     {
         for (Entry<String, ListInfo> entry : this.index.getIndex().entrySet())
@@ -112,6 +161,12 @@ public class ListTestCollection
         return result;
     }
 
+    /**
+     * Get the index info.
+     * 
+     * @param resultsFolder - The directory of results.
+     * @return The index info.
+     */
     private static Index getIndex(File resultsFolder)
     {
         File indexFile = new File(resultsFolder, "index.json");
@@ -123,6 +178,10 @@ public class ListTestCollection
         }
     }
 
+    /**
+     * Save the index info.
+     * @throws IOException
+     */
     private void saveIndex() throws IOException
     {
         File indexFile = new File(this.resultsFolder, "index.json");
@@ -139,6 +198,11 @@ public class ListTestCollection
         }
     }
 
+    /**
+     * Get the file associated with the specified list.
+     * @param list
+     * @return The file associated with the specified list.
+     */
     private File getListResultsFile(String list)
     {
         return new File(this.resultsFolder, list + ".json");

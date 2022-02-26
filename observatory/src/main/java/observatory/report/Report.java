@@ -122,6 +122,11 @@ public class Report
         }
     }
 
+    /**
+     * Set the date of the report.
+     * @param workbook
+     * @param listResultsTemplate
+     */
     private void setReportDate(Workbook workbook, Sheet listResultsTemplate)
     {
         for (int i = 0; i < workbook.getSheetIndex(listResultsTemplate); i++)
@@ -147,6 +152,10 @@ public class Report
         }
     }
 
+    /**
+     * Check if the results of the specified lists are available.
+     * @param listsToConfirm
+     */
     private void checkIfListsExist(List<String> listsToConfirm)
     {
         if (listsToConfirm.isEmpty())
