@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,7 @@ import observatory.internetnlAPI.config.TestInfo;
 import observatory.internetnlAPI.config.results.TestResult;
 import observatory.tests.collection.ListInfo;
 import observatory.tests.collection.ListTestCollection;
+import observatory.util.Logging;
 import observatory.util.Util;
 
 /**
@@ -31,7 +33,7 @@ import observatory.util.Util;
  */
 public class TestDomains implements Closeable
 {
-    private static Logger log = Logger.getLogger(TestDomains.class.getSimpleName());
+    private Logger logger;
 
     private final InputStream domainsInputStream;
     private final Workbook domains;
@@ -43,6 +45,10 @@ public class TestDomains implements Closeable
     private final ListTestCollection listTestCollection;
 
     private final RequestType type;
+
+    private Consumer<TestInfo> listSubmittedListener;
+
+    private Consumer<ListTest> listFetchedResultsListener;
 
     /**
      * Creates a new Test configuration.
@@ -100,6 +106,24 @@ public class TestDomains implements Closeable
     }
 
     /**
+     * Set a listener for submitted lists to test.
+     * @param listSubmittedListener - The function to execute when a list is submitted to test.
+     */
+    public void setListSubmittedListener(Consumer<TestInfo> listSubmittedListener)
+    {
+        this.listSubmittedListener = listSubmittedListener;
+    }
+
+    /**
+     * Set a listener for fetched results of a list.
+     * @param listFetchedResultsListener - The function to execute when the results of a list are fetched.
+     */
+    public void setListFetchedResultsListener(Consumer<ListTest> listFetchedResultsListener)
+    {
+        this.listFetchedResultsListener = listFetchedResultsListener;
+    }
+
+    /**
      * Check the lists to test.
      * 
      * @param listsToTest
@@ -133,8 +157,13 @@ public class TestDomains implements Closeable
      */
     public void start(boolean overwrite) throws InternetnlAPIException, IOException
     {
+        createLogger();
+        this.logger.info("Starting tests...");
+        
         for (String list : this.listsToTest)
             testList(list, overwrite);
+
+        this.logger.info("All tests completed successfully!");
     }
 
     /**
@@ -156,7 +185,7 @@ public class TestDomains implements Closeable
 
             if (!overwrite && info != null && info.getOk())
             {
-                log.info(String.format("Already tested list %s of type %s", list, type.getType()));
+                logger.info(String.format("Already tested list %s of type %s", list, type.getType()));
                 return;
             }
 
@@ -171,7 +200,7 @@ public class TestDomains implements Closeable
             {
                 //try to get the results of a previous test. If not, launch a new one.
 
-                log.info(String.format("Already started %s test on list %s with test id: %s",
+                logger.info(String.format("Already started %s test on list %s with test id: %s",
                     this.type.getType(), list, info.getTestId()));
 
                 RunningTest test = new RunningTest(info.getTestId(), api);
@@ -179,7 +208,7 @@ public class TestDomains implements Closeable
                 {
                     waitAndSaveResults(test, list, domainsList);
                 } catch (TestIdNotFoundException e) {
-                    log.warning(e.getMessage());
+                    logger.warning(e.getMessage());
 
                     // Previous test failed...
                     // Submit a new test and wait for the results.
@@ -188,8 +217,8 @@ public class TestDomains implements Closeable
                 }
             }
         } catch (IOException | InternetnlAPIException e) {
-            log.severe(String.format("An error occurred during %s test on list %s.",
-                type.getType(), list));
+            logger.severe(String.format("An error occurred during %s test on list %s.\n%s",
+                type.getType(), list, e.getMessage()));
             throw e;
         }
     }
@@ -206,17 +235,17 @@ public class TestDomains implements Closeable
     private RunningTest startTest(String list, String[] domainsList)
         throws IOException, InternetnlAPIException
     {
-        log.info(String.format("Starting %s test on list %s", this.type.getType(), list));
+        logger.info(String.format("Starting %s test on list %s", this.type.getType(), list));
 
         TestInfo testInfo = this.api.submit(list, domainsList, this.type);
         String testId = testInfo.getRequest().getRequest_id();
-        log.info(String.format("Started %s test on list %s with id %s", type.getType(), list, testId));
-
-        // print test ID in stderr
-        System.err.println(testId);
+        logger.info(String.format("Started %s test on list %s with id %s", type.getType(), list, testId));
 
         // save id in case of an error.
         listTestCollection.saveTestId(list, testId);
+
+        if (this.listSubmittedListener != null)
+            this.listSubmittedListener.accept(testInfo);
 
         return new RunningTest(testId, this.api);
     }
@@ -234,15 +263,24 @@ public class TestDomains implements Closeable
     private ListTest waitAndSaveResults(RunningTest test, String list, String[] domainsList)
         throws IOException, InternetnlAPIException
     {
-        log.info(String.format("Waiting for %s test on list %s", this.type.getType(), list));
+        logger.info(String.format("Waiting for %s test on list %s", this.type.getType(), list));
         TestResult result = test.waitFor();
-        log.info(String.format("Finished %s test on list %s and got results.", this.type.getType(), list));
+        logger.info(String.format("Finished %s test on list %s and got results.", this.type.getType(), list));
 
         ListTest listResults = new ListTest(list, result, domainsList);
         listTestCollection.saveListResults(listResults);
-        log.info(String.format("Successfully saved results of %s test on list %s.", this.type.getType(), list));
+        logger.info(String.format("Successfully saved results of %s test on list %s.", this.type.getType(), list));
 
+        if (this.listFetchedResultsListener != null)
+            this.listFetchedResultsListener.accept(listResults);
+        
         return listResults;
+    }
+
+    private void createLogger() throws IOException
+    {
+        this.logger = Logging.configLogger(Logger.getLogger(TestDomains.class.getCanonicalName()),
+            Logging.createLogFileName(this.listTestCollection.resultsFolder, "test"), true);
     }
 
     @Override

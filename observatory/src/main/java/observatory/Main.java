@@ -17,6 +17,7 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import observatory.internetnlAPI.InternetnlAPI;
 import observatory.internetnlAPI.InternetnlAPIOverNetwork;
+import observatory.internetnlAPI.config.InternetnlRequest;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.report.Report;
 import observatory.tests.TestDomains;
@@ -24,6 +25,8 @@ import observatory.tests.TestDomains;
 public class Main
 {
     private static final int EXIT_ERROR_STATUS = 1;
+
+    private static final SimpleDateFormat DATE_FORMAT_PRINT_TEST_PROGRESS = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
     public static void main(String[] args)
     {        
@@ -139,8 +142,6 @@ public class Main
                     tests.start(overwrite); 
                 }
             }
-
-            System.out.println("All tests completed successfully!");
         }
         catch (Exception e) {
             System.err.println(e.getMessage());
@@ -156,8 +157,25 @@ public class Main
             tests = new TestDomains(domains, resultsFolder, api, type, Set.copyOf(args));
         else
             tests = new TestDomains(domains, resultsFolder, api, type);
+        
+        tests.setListSubmittedListener((submitted) ->
+            printTestProgress(submitted.getRequest(), "submitted"));
+
+        tests.setListFetchedResultsListener((fetchedResults) ->
+            printTestProgress(fetchedResults.getResults().getRequest(), "fetched"));
 
         return tests;
+    }
+
+    private static void printTestProgress(InternetnlRequest info, String status)
+    {
+        final String format = "%s\t%s\t%s\t%s\t%s\n";
+        System.out.printf(format,
+            DATE_FORMAT_PRINT_TEST_PROGRESS.format(Calendar.getInstance().getTime()),
+            info.getName(),
+            info.getRequest_type().getType(),
+            info.getRequest_id(),
+            status);
     }
 
     private static Properties getInternetnlAPI_BatchConfig()
