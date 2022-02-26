@@ -20,9 +20,9 @@ import observatory.util.Util;
  */
 public class ListTestCollection
 {
-    private File resultsFolder;
+    public final File resultsFolder;
 
-    private Index index;
+    private final Index index;
 
     /**
      * Initializes a new collection of results from the specified directory and type.
@@ -30,12 +30,12 @@ public class ListTestCollection
      * @param resultsFolder - The directory with the results.
      * @param type - The type of results.
      */
-    public ListTestCollection(File resultsFolder, RequestType type)
+    public ListTestCollection(File resultsFolder, RequestType type) throws IOException
     {
         this.resultsFolder = Util.getResultsFolder(Objects.requireNonNull(resultsFolder), type);
         this.resultsFolder.mkdirs();
         if (!resultsFolder.isDirectory())
-            throw new IllegalArgumentException("Invalid results location.");
+            throw new IOException("Invalid results location.");
         
         this.index = getIndex(this.resultsFolder);
     }
