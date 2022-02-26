@@ -3,13 +3,18 @@ FROM maven:3-openjdk-11 AS build
 WORKDIR /observatory
 
 COPY pom.xml /observatory/pom.xml
-COPY src/ /observatory/src/
 
 # Update and install
 RUN apt update && \
 apt full-upgrade -y && \
 rm -r /var/lib/apt/lists/* && \
-mvn compile assembly:single
+mvn dependency:resolve && \
+mvn dependency:resolve-plugins
+
+COPY src/ /observatory/src/
+
+# compile
+RUN mvn compile assembly:single
 
 FROM openjdk:11-jre-slim
 
