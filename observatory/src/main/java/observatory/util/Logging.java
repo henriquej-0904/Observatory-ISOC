@@ -14,7 +14,7 @@ import java.util.logging.SimpleFormatter;
  */
 public class Logging
 {
-    private static final SimpleDateFormat FILE_NAME_DATE_FORMAT = new SimpleDateFormat("dd_MM_yyyy");
+    private static final SimpleDateFormat FILE_NAME_DATE_FORMAT = new SimpleDateFormat("yyyy_MM_dd.HH-mm-ss");
 
     /**
      * Configure a logger to output to a file.
