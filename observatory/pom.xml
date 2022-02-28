@@ -9,7 +9,7 @@
   <version>1.0</version>
   <packaging>jar</packaging>
 
-  <name>observatory.auto.update</name>
+  <name>observatory</name>
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
 
