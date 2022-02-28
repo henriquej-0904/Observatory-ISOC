@@ -69,11 +69,11 @@ public class Main
         "\t--overwrite -> Overwrite results if they were already tested.\n" +
         "\tlists to test -> A set of lists to test.\n");
 
-        System.out.println("-> report <WEB | MAIL> <report.xlsx> <results folder> [--date <day/month/year>] [lists to create a full report]");
+        System.out.println("-> report <WEB | MAIL> <report.xlsx> <results folder> [--date <dd/MM/yyyy>] [lists to create a full report]");
         System.out.println("Create a report of the specified type based on the results provided.");
         System.out.println(
             "Options:\n"+
-            "\t--date -> The date of the report in <day/month/year> format.\n" +
+            "\t--date -> The date of the report in <dd/MM/yyyy> format.\n" +
             "\tlists to create a full report -> The report of the specified lists will have the full results.\n"
         );
     }
