@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import observatory.internetnlAPI.config.RequestType;
+import observatory.internetnlAPI.config.results.TestResult;
 import observatory.tests.ListTest;
 import observatory.util.Util;
 
@@ -23,6 +24,8 @@ public class ListTestCollection
     public final File resultsFolder;
 
     private final Index index;
+
+    private final ObjectMapper mapper;
 
     /**
      * Initializes a new collection of results from the specified directory and type.
@@ -38,6 +41,7 @@ public class ListTestCollection
             throw new IOException("Invalid results location.");
         
         this.index = getIndex(this.resultsFolder);
+        this.mapper = new ObjectMapper();
     }
 
     /**
@@ -89,7 +93,8 @@ public class ListTestCollection
 
         try
         {
-            return new ObjectMapper().readValue(getListResultsFile(list), ListTest.class);
+            TestResult result = this.mapper.readValue(getListResultsFile(list), TestResult.class);
+            return new ListTest(list, result);
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {
@@ -110,7 +115,7 @@ public class ListTestCollection
         
         try
         {
-            new ObjectMapper().writeValue(getListResultsFile(list.getName()), list);
+            this.mapper.writeValue(getListResultsFile(list.getName()), list.getResults());
             saveIndex();
         } catch (IOException e)
         {

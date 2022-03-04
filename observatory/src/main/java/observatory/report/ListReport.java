@@ -170,20 +170,20 @@ public class ListReport
      */
     public Sheet generateReport()
     {
-        String[] domains = listResults.getTestedDomains();
         Map<String, DomainResults> resultsByDomain = listResults.getResults().getDomains();
         int testedDomains = 0;
 
         int currentDomainRow = ADDRESS_FIRST_DOMAIN.getRow();
-        for (String domain : domains)
+        for (Entry<String, DomainResults> domainResultEntry : resultsByDomain.entrySet())
         {
+            String domain = domainResultEntry.getKey();
+            DomainResults results = domainResultEntry.getValue();
+
             Row row = report.createRow(currentDomainRow++);
             int currentColumn = ADDRESS_FIRST_DOMAIN.getColumn();
 
             // set list name
             row.createCell(currentColumn++, CellType.STRING).setCellValue(listResults.getName());
-
-            DomainResults results = resultsByDomain.get(domain);
 
             // set domain url
             row.createCell(currentColumn++, CellType.STRING).setCellValue(domain);

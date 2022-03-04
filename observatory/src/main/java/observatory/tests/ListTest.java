@@ -7,26 +7,17 @@ import observatory.internetnlAPI.config.results.TestResult;
  */
 public class ListTest
 {
-    private String name;
+    private final String name;
 
-    private TestResult results;
-
-    private String[] testedDomains;
-    
-    /**
-     * 
-     */
-    public ListTest() {
-    }
+    private final TestResult results;
 
     /**
      * @param name
      * @param results
      */
-    public ListTest(String name, TestResult results, String[] testedDomains) {
+    public ListTest(String name, TestResult results) {
         this.name = name;
         this.results = results;
-        this.testedDomains = testedDomains;
     }
 
     /**
@@ -41,33 +32,5 @@ public class ListTest
      */
     public TestResult getResults() {
         return results;
-    }
-
-    /**
-     * @param name the name to set
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * @param results the results to set
-     */
-    public void setResults(TestResult results) {
-        this.results = results;
-    }
-
-    /**
-     * @return the testedDomains
-     */
-    public String[] getTestedDomains() {
-        return testedDomains;
-    }
-
-    /**
-     * @param testedDomains the testedDomains to set
-     */
-    public void setTestedDomains(String[] testedDomains) {
-        this.testedDomains = testedDomains;
     }
 }

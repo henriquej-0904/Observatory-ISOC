@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
@@ -23,6 +24,7 @@ import observatory.internetnlAPI.TestIdNotFoundException;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.TestInfo;
 import observatory.internetnlAPI.config.results.TestResult;
+import observatory.internetnlAPI.config.results.domain.DomainResults;
 import observatory.tests.collection.ListInfo;
 import observatory.tests.collection.ListTestCollection;
 import observatory.util.Logging;
@@ -47,7 +49,6 @@ public class TestDomains implements Closeable
     private final RequestType type;
 
     private Consumer<TestInfo> listSubmittedListener;
-
     private Consumer<ListTest> listFetchedResultsListener;
 
     /**
@@ -264,10 +265,10 @@ public class TestDomains implements Closeable
         throws IOException, InternetnlAPIException
     {
         logger.info(String.format("Waiting for %s test on list %s", this.type.getType(), list));
-        TestResult result = test.waitFor();
+        TestResult result = orderDomains(test.waitFor(), domainsList);
         logger.info(String.format("Finished %s test on list %s and got results.", this.type.getType(), list));
 
-        ListTest listResults = new ListTest(list, result, domainsList);
+        ListTest listResults = new ListTest(list, result);
         listTestCollection.saveListResults(listResults);
         logger.info(String.format("Successfully saved results of %s test on list %s.", this.type.getType(), list));
 
@@ -275,6 +276,27 @@ public class TestDomains implements Closeable
             this.listFetchedResultsListener.accept(listResults);
         
         return listResults;
+    }
+
+    /**
+     * Order the domains by the specified domains List.
+     * 
+     * @param result - The result that contains the domains results.
+     * @param domainsList - Order the domains by the specified list.
+     * 
+     * @return The result.
+     */
+    private TestResult orderDomains(TestResult result, String[] domainsList)
+    {
+        LinkedHashMap<String, DomainResults> unorderedDomains = result.getDomains();
+        LinkedHashMap<String, DomainResults> orderedDomains = new LinkedHashMap<>(result.getDomains().size());
+        
+        for (String domain : domainsList)
+            orderedDomains.put(domain, unorderedDomains.get(domain));
+
+        result.setDomains(orderedDomains);
+
+        return result;
     }
 
     private void createLogger() throws IOException

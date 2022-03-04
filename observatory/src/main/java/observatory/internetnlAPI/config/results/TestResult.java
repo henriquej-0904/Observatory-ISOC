@@ -1,6 +1,6 @@
 package observatory.internetnlAPI.config.results;
 
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 import observatory.internetnlAPI.config.InternetnlRequest;
 import observatory.internetnlAPI.config.results.domain.DomainResults;
@@ -13,8 +13,10 @@ public class TestResult
 
     /**
      * Map results for each domain.
+     * This map should be ordered by key (the domain) and the order must be
+     * equal to the list of submitted domains.
      */
-    private Map<String, DomainResults> domains;
+    private LinkedHashMap<String, DomainResults> domains;
 
     /**
      * 
@@ -51,16 +53,19 @@ public class TestResult
     }
 
     /**
-     * @return the domains
+     * Get the domains results.
+     * This map is ordered by key (the domain) and the order is
+     * equal to the list of submitted domains.
+     * @return The domains results.
      */
-    public Map<String, DomainResults> getDomains() {
+    public LinkedHashMap<String, DomainResults> getDomains() {
         return domains;
     }
 
     /**
      * @param domains the domains to set
      */
-    public void setDomains(Map<String, DomainResults> domains) {
+    public void setDomains(LinkedHashMap<String, DomainResults> domains) {
         this.domains = domains;
     }
 
