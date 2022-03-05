@@ -25,8 +25,8 @@ import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.TestInfo;
 import observatory.internetnlAPI.config.results.TestResult;
 import observatory.internetnlAPI.config.results.domain.DomainResults;
-import observatory.tests.collection.ListInfo;
 import observatory.tests.collection.ListTestCollection;
+import observatory.tests.index.Index;
 import observatory.util.Logging;
 import observatory.util.Util;
 
@@ -35,39 +35,43 @@ import observatory.util.Util;
  */
 public class TestDomains implements Closeable
 {
-    private Logger logger;
+    public static final String DEFAULT_DOMAINS_WORKBOOK_FILE_NAME = "domains.xlsx";
+
+    private final RequestType type;
+
+    private final InternetnlAPI api;
+
+    private final ListTestCollection listTestCollection;
 
     private final InputStream domainsInputStream;
     private final Workbook domains;
 
     private final SortedSet<String> listsToTest;
 
-    private final InternetnlAPI api;
+    private final Index index;
 
-    private final ListTestCollection listTestCollection;
-
-    private final RequestType type;
+    private Logger logger;
 
     private Consumer<TestInfo> listSubmittedListener;
     private Consumer<ListTest> listFetchedResultsListener;
 
-    /**
-     * Creates a new Test configuration.
-     * 
-     * @param domains - The file with the domains.
-     * @param resultsFolder - The folder to output the results.
-     * @param api - The Internet.nl API.
-     * @param type - The type of test.
-     * @throws IOException
-     * @throws InvalidFormatException
-     */
-    public TestDomains(File domains, File resultsFolder, InternetnlAPI api, RequestType type)
+    public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder)
         throws IOException, InvalidFormatException
     {
-        this.domainsInputStream = new FileInputStream(domains);
-        this.domains = Util.openWorkbook(this.domainsInputStream);
+        this(type, api, index, resultsFolder,
+            new File(Objects.requireNonNull(resultsFolder), DEFAULT_DOMAINS_WORKBOOK_FILE_NAME));
+    }
+
+    public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder, File domainsWorkbookFile)
+        throws IOException, InvalidFormatException
+    {
         this.type = type;
-        this.listTestCollection = new ListTestCollection(resultsFolder, type);
+        this.api = Objects.requireNonNull(api);
+        this.index = Objects.requireNonNull(index);
+        this.listTestCollection = new ListTestCollection(resultsFolder);
+
+        this.domainsInputStream = new FileInputStream(domainsWorkbookFile);
+        this.domains = Util.openWorkbook(this.domainsInputStream);
 
         if (this.domains.getNumberOfSheets() == 0)
             throw new IllegalArgumentException("There is no domains to test.");
@@ -75,35 +79,32 @@ public class TestDomains implements Closeable
         this.listsToTest = new TreeSet<>();
 
         for (Sheet sheet : this.domains)
-            this.listsToTest.add(sheet.getSheetName());
-
-        this.api = Objects.requireNonNull(api);
+            this.listsToTest.add(sheet.getSheetName().toUpperCase());
     }
 
-    /**
-     * Creates a new Test configuration.
-     * 
-     * @param domains - The file with the domains.
-     * @param resultsFolder - The folder to output the results.
-     * @param api - The Internet.nl API.
-     * @param type - The type of test.
-     * @param listsToTest - The name of the lists to test.
-     * @throws IOException
-     * @throws InvalidFormatException
-     */
-    public TestDomains(File domains, File resultsFolder,
-        InternetnlAPI api, RequestType type, Set<String> listsToTest) throws IOException, InvalidFormatException
+    public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder, Set<String> listsToTest)
+        throws IOException, InvalidFormatException
     {
-        this.domainsInputStream = new FileInputStream(domains);
-        this.domains = Util.openWorkbook(this.domainsInputStream);
+        this(type, api, index, resultsFolder,
+            new File(Objects.requireNonNull(resultsFolder), DEFAULT_DOMAINS_WORKBOOK_FILE_NAME), listsToTest);
+    }
+
+    public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder,
+        File domainsWorkbookFile, Set<String> listsToTest)
+        throws IOException, InvalidFormatException
+    {
         this.type = type;
-        this.listTestCollection = new ListTestCollection(resultsFolder, type);
+        this.api = Objects.requireNonNull(api);
+        this.index = Objects.requireNonNull(index);
+        this.listTestCollection = new ListTestCollection(resultsFolder);
+
+        this.domainsInputStream = new FileInputStream(domainsWorkbookFile);
+        this.domains = Util.openWorkbook(this.domainsInputStream);
 
         if (this.domains.getNumberOfSheets() == 0)
             throw new IllegalArgumentException("There is no domains to test.");
 
         this.listsToTest = checkListsToTest(Objects.requireNonNull(listsToTest), this.domains);
-        this.api = Objects.requireNonNull(api);
     }
 
     /**
@@ -151,18 +152,16 @@ public class TestDomains implements Closeable
     /**
      * Start testing.
      * 
-     * @param overwrite - True to test the list if it was already tested.
-     * 
      * @throws InternetnlAPIException
      * @throws IOException
      */
-    public void start(boolean overwrite) throws InternetnlAPIException, IOException
+    public void start() throws InternetnlAPIException, IOException
     {
         createLogger();
         this.logger.info("Starting tests...");
         
         for (String list : this.listsToTest)
-            testList(list, overwrite);
+            testList(list);
 
         this.logger.info("All tests completed successfully!");
     }
@@ -171,28 +170,24 @@ public class TestDomains implements Closeable
      * Test the domains in the specified list.
      * 
      * @param list - The name of the list
-     * @param type - The type of test.
-     * @param overwrite - True to test the list if it was already tested.
      * 
      * @throws InternetnlAPIException
      * @throws IOException
      */
-    private void testList(String list, boolean overwrite)
+    private void testList(String list)
         throws InternetnlAPIException, IOException
     {
         try
         {
-            ListInfo info = listTestCollection.getListInfo(list);
-
-            if (!overwrite && info != null && info.getOk())
+            if (this.listTestCollection.isListResultsAvailable(list))
             {
-                logger.info(String.format("Already tested list %s of type %s", list, type.getType()));
+                logger.info(String.format("Already tested list %s of type %s", list, this.type.getType()));
                 return;
             }
 
             String[] domainsList = Util.getDomainsList(this.domains, list, this.type);
 
-            if (overwrite || info == null)
+            if (!this.index.hasList(list))
             {
                 RunningTest test = startTest(list, domainsList);
                 waitAndSaveResults(test, list, domainsList);
@@ -200,11 +195,12 @@ public class TestDomains implements Closeable
             else
             {
                 //try to get the results of a previous test. If not, launch a new one.
+                String testId = this.index.get(list);
 
                 logger.info(String.format("Already started %s test on list %s with test id: %s",
-                    this.type.getType(), list, info.getTestId()));
+                    this.type.getType(), list, testId));
 
-                RunningTest test = new RunningTest(info.getTestId(), api);
+                RunningTest test = new RunningTest(testId, api);
                 try
                 {
                     waitAndSaveResults(test, list, domainsList);
@@ -243,7 +239,7 @@ public class TestDomains implements Closeable
         logger.info(String.format("Started %s test on list %s with id %s", type.getType(), list, testId));
 
         // save id in case of an error.
-        listTestCollection.saveTestId(list, testId);
+        this.index.assocList(list, testId);
 
         if (this.listSubmittedListener != null)
             this.listSubmittedListener.accept(testInfo);
