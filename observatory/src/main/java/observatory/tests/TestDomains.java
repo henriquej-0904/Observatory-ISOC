@@ -240,6 +240,7 @@ public class TestDomains implements Closeable
 
         // save id in case of an error.
         this.index.assocList(list, testId);
+        this.index.save();
 
         if (this.listSubmittedListener != null)
             this.listSubmittedListener.accept(testInfo);
