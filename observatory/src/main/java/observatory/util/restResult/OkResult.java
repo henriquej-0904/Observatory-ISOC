@@ -1,4 +1,4 @@
-package observatory.util;
+package observatory.util.restResult;
 
 import jakarta.ws.rs.core.Response.Status;
 

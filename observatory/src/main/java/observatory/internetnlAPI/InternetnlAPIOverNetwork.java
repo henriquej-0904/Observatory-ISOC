@@ -19,8 +19,8 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.TestInfo;
-import observatory.internetnlAPI.config.results.TestResult;
-import observatory.util.Result;
+import observatory.internetnlAPI.config.testResult.TestResult;
+import observatory.util.restResult.Result;
 
 /**
  * An implementation of InternetnlAPI that communicates via HTTP.

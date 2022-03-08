@@ -14,7 +14,6 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -23,10 +22,11 @@ import observatory.internetnlAPI.InternetnlAPIException;
 import observatory.internetnlAPI.TestIdNotFoundException;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.TestInfo;
-import observatory.internetnlAPI.config.results.TestResult;
-import observatory.internetnlAPI.config.results.domain.DomainResults;
+import observatory.internetnlAPI.config.testResult.TestResult;
+import observatory.internetnlAPI.config.testResult.domain.DomainResults;
 import observatory.tests.collection.ListTestCollection;
 import observatory.tests.index.Index;
+import observatory.util.InvalidFormatException;
 import observatory.util.Logging;
 import observatory.util.Util;
 

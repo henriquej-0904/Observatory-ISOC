@@ -4,9 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import observatory.internetnlAPI.config.results.TestResult;
 import observatory.tests.ListTest;
 
 /**
@@ -15,8 +12,6 @@ import observatory.tests.ListTest;
 public class ListTestCollection
 {
     public final File resultsFolder;
-
-    private final ObjectMapper mapper;
 
     /**
      * Initializes a new collection of results from the specified directory.
@@ -29,26 +24,6 @@ public class ListTestCollection
         this.resultsFolder.mkdirs();
         if (!resultsFolder.isDirectory())
             throw new IOException("Invalid results location.");
-        
-        this.mapper = new ObjectMapper();
-    }
-
-    /**
-     * Get the results of a list.
-     * 
-     * @param list
-     * @return The results of a list.
-     * @throws InvalidResultsFileException
-     */
-    public ListTest getListResults(String list) throws InvalidResultsFileException
-    {
-        try
-        {
-            TestResult result = this.mapper.readValue(getListResultsFile(list), TestResult.class);
-            return new ListTest(list, result);
-        } catch (Exception e) {
-            throw new InvalidResultsFileException(e);
-        }
     }
 
     /**
@@ -59,13 +34,7 @@ public class ListTestCollection
      */
     public void saveListResults(ListTest list) throws IOException
     {
-        try
-        {
-            this.mapper.writeValue(getListResultsFile(list.getName()), list.getResults());
-        } catch (IOException e)
-        {
-            throw e;
-        }
+        list.getResults().save(getListResultsFile(list.getName()));
     }
 
     /**

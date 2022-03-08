@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -16,9 +15,26 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import observatory.internetnlAPI.config.RequestType;
+import observatory.tests.index.Index;
 
 public class Util
 {
+    public static File getCurrentWorkingDir()
+    {
+        return new File(System.getProperty("user.dir"));
+    }
+
+    public static Index getIndexIfExists(File indexFile) throws IOException, InvalidFormatException
+    {
+        Index index;
+        if (indexFile.isFile()) // if index exists then load it
+            index = Index.fromFile(indexFile);
+        else // create a new index
+            index = Index.empty(indexFile);
+
+        return index;
+    }
+
     /**
      * Get the results location of the specified type.
      * @param resultsFolder - The results root directory.
@@ -38,9 +54,15 @@ public class Util
      * @throws InvalidFormatException
      * @throws IOException
      */
-    public static Workbook openWorkbook(File workbookFile) throws InvalidFormatException, IOException
+    public static Workbook openWorkbook(File workbookFile) throws IOException, InvalidFormatException
     {
-        return new XSSFWorkbook(workbookFile);
+        try {
+            return new XSSFWorkbook(workbookFile);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvalidFormatException(e);
+        }
     }
 
     /**
@@ -51,9 +73,15 @@ public class Util
      * @throws InvalidFormatException
      * @throws IOException
      */
-    public static Workbook openWorkbook(InputStream workbookInputStream) throws InvalidFormatException, IOException
+    public static Workbook openWorkbook(InputStream workbookInputStream) throws IOException, InvalidFormatException
     {
-        return new XSSFWorkbook(workbookInputStream);
+        try {
+            return new XSSFWorkbook(workbookInputStream);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvalidFormatException(e);
+        }
     }
 
     /**

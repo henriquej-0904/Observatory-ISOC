@@ -1,6 +1,6 @@
 package observatory.tests;
 
-import observatory.internetnlAPI.config.results.TestResult;
+import observatory.internetnlAPI.config.testResult.TestResult;
 
 /**
  * Represents a Test of a List of domains with it's results.
@@ -10,6 +10,11 @@ public class ListTest
     private final String name;
 
     private final TestResult results;
+
+    public static ListTest from(TestResult results)
+    {
+        return new ListTest(results.getRequest().getName(), results);
+    }
 
     /**
      * @param name

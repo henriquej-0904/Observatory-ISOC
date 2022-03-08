@@ -1,10 +1,18 @@
-package observatory.internetnlAPI.config.results;
+package observatory.internetnlAPI.config.testResult;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 
-import observatory.internetnlAPI.config.InternetnlRequest;
-import observatory.internetnlAPI.config.results.domain.DomainResults;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import observatory.internetnlAPI.config.InternetnlRequest;
+import observatory.internetnlAPI.config.testResult.domain.DomainResults;
+import observatory.util.InvalidFormatException;
+
+/**
+ * Represents the results of a test.
+ */
 public class TestResult
 {
     private String api_version;
@@ -23,6 +31,42 @@ public class TestResult
      */
     public TestResult() {
     }
+
+    //#region Load & Save
+
+    /**
+     * Save the results to a file.
+     * 
+     * @param output - The output file.
+     * 
+     * @throws IOException
+     */
+    public void save(File output) throws IOException
+    {
+        new ObjectMapper().writeValue(output, this);
+    }
+
+    /**
+     * Load a test result from a file.
+     * @param input - The file that contains the results.
+     * @return The Test Result.
+     * @throws IOException
+     * @throws InvalidFormatException
+     */
+    public static TestResult fromFile(File input) throws IOException, InvalidFormatException
+    {
+        try {
+            return new ObjectMapper().readValue(input, TestResult.class);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvalidFormatException(e);
+        }
+    }
+
+    //#endregion
+
+    //#region Getters & Setters
 
     /**
      * @return the api_version
@@ -69,5 +113,6 @@ public class TestResult
         this.domains = domains;
     }
 
-    
+    //#endregion
+
 }

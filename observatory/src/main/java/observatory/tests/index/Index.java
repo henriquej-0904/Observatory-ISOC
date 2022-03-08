@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
+import observatory.util.InvalidFormatException;
+
 /**
  * Represents an index that maps a list name to a test id.
  */
@@ -39,9 +41,9 @@ public class Index implements Map<String, String>
      * Constructs an index from the contents of the specified file.
      * @param indexFile
      * @return The index.
-     * @throws InvalidIndexFileException if an error occurred while creating the index.
+     * @throws InvalidFormatException if an error occurred while creating the index.
      */
-    public static Index fromFile(File indexFile) throws InvalidIndexFileException
+    public static Index fromFile(File indexFile) throws IOException, InvalidFormatException
     {
         TypeFactory typeFactory = TypeFactory.defaultInstance();
         MapType type = typeFactory.constructMapType(HashMap.class, String.class, String.class);
@@ -52,8 +54,10 @@ public class Index implements Map<String, String>
         {
             Map<String, String> index = mapper.readValue(Objects.requireNonNull(indexFile), type);
             return new Index(index, indexFile, mapper);
+        } catch (IOException e) {
+            throw e;
         } catch (Exception e) {
-            throw new InvalidIndexFileException(e);
+            throw new InvalidFormatException(e);
         }
     }
 

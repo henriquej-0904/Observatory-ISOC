@@ -1,4 +1,4 @@
-package observatory.internetnlAPI.config.results.domain;
+package observatory.internetnlAPI.config.testResult.domain;
 
 /**
  * Represents a result of a test or category.
