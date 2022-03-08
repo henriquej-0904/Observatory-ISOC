@@ -19,11 +19,23 @@ import observatory.tests.index.Index;
 
 public class Util
 {
+    /**
+     * Get the current Working Directory from where the JVM was started.
+     * @return The current Working Directory
+     */
     public static File getCurrentWorkingDir()
     {
         return new File(System.getProperty("user.dir"));
     }
 
+    /**
+     * Get a List Results Index from a file. If the file does not exist creates a new one.
+     * 
+     * @param indexFile - The file that contains the index or the location of the new Index file.
+     * @return The Index.
+     * @throws IOException
+     * @throws InvalidFormatException
+     */
     public static Index getIndexIfExists(File indexFile) throws IOException, InvalidFormatException
     {
         Index index;
@@ -33,18 +45,6 @@ public class Util
             index = Index.empty(indexFile);
 
         return index;
-    }
-
-    /**
-     * Get the results location of the specified type.
-     * @param resultsFolder - The results root directory.
-     * @param type - The type of results.
-     * 
-     * @return The results location of the specified type.
-     */
-    public static File getResultsFolder(File resultsFolder, RequestType type)
-    {
-        return new File(resultsFolder, type.getType());
     }
 
     /**
