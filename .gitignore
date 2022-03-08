@@ -12,3 +12,4 @@ buildNumber.properties
 *.conf
 *.properties
 results/
+config/
