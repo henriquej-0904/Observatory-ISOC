@@ -16,7 +16,6 @@ import observatory.argsParser.options.OptionType;
 import observatory.argsParser.options.OptionValue;
 import observatory.argsParser.options.ParseOptions;
 import observatory.internetnlAPI.config.RequestType;
-import observatory.util.Util;
 
 public class ReportArgs
 {
@@ -25,13 +24,12 @@ public class ReportArgs
 
     private static final String DATE_FORMAT = "dd/MM/yyyy";
 
-    public static final Option OPTION_WORKING_DIR = new Option("--dir", OptionType.SINGLE);
     public static final Option OPTION_TEMPLATE_FILE = new Option("--template", OptionType.SINGLE);
     public static final Option OPTION_DATE = new Option("--date", OptionType.SINGLE);
     public static final Option OPTION_FULL_REPORT = new Option("--full-report", OptionType.LIST);
 
     private static final ParseOptions PARSE_OPTIONS = new ParseOptions(
-            Set.of(OPTION_WORKING_DIR, OPTION_TEMPLATE_FILE, OPTION_DATE, OPTION_FULL_REPORT));
+            Set.of(OPTION_TEMPLATE_FILE, OPTION_DATE, OPTION_FULL_REPORT));
 
     private final RequestType type;
 
@@ -42,7 +40,7 @@ public class ReportArgs
     private final List<File> listsResultFiles;
 
 
-    private File workingDir, templateFile;
+    private File templateFile;
     private Calendar date;
     private List<String> listsFullReport;
 
@@ -98,19 +96,6 @@ public class ReportArgs
 
     //#region Options
 
-    public File getWorkingDir()
-    {
-        if (this.workingDir == null)
-            this.workingDir = getOption(OPTION_WORKING_DIR, (Function<OptionValue, File>)
-                (optionValue) ->
-                {
-                    return new File(optionValue.getSingle());
-                },
-                Util::getCurrentWorkingDir);
-
-        return this.workingDir;
-    }
-
     public File getTemplateFile()
     {
         if (this.templateFile == null)
@@ -119,8 +104,7 @@ public class ReportArgs
                 {
                     return new File(optionValue.getSingle());
                 },
-                () -> new File(getWorkingDir(),
-                        this.type == RequestType.WEB ? WEB_TEMPLATE_FILE : MAIL_TEMPLATE_FILE));
+                () -> new File(this.type == RequestType.WEB ? WEB_TEMPLATE_FILE : MAIL_TEMPLATE_FILE));
 
         return this.templateFile;
     }
@@ -191,12 +175,9 @@ public class ReportArgs
         System.out.println(
             "[options]:\n" +
 
-            "\t" + OPTION_WORKING_DIR.getName() + " working-dir-path -> The directory to search the template file. " +
-            "If not defined, defaults to the current directory.\n" +
-
             "\t" + OPTION_TEMPLATE_FILE.getName() + " template-file-path -> The path to the report template. " +
             "If not defined, defaults to \"" + WEB_TEMPLATE_FILE + "\" for a report of type web or " +
-            "\"" + MAIL_TEMPLATE_FILE + "\" for a report of type mail in the working directory (working-dir-path).\n" +
+            "\"" + MAIL_TEMPLATE_FILE + "\" for a report of type mail in the current directory.\n" +
 
             "\t" + OPTION_DATE.getName() +  " -> The date of the report in <" + DATE_FORMAT + "> format. " +
             "If not defined, defaults to the current date.\n" +
