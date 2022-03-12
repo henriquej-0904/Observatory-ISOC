@@ -5,7 +5,7 @@ import java.util.Objects;
 import observatory.internetnlAPI.InternetnlAPI;
 import observatory.internetnlAPI.InternetnlAPIException;
 import observatory.internetnlAPI.config.TestInfo;
-import observatory.internetnlAPI.config.results.TestResult;
+import observatory.internetnlAPI.config.testResult.TestResult;
 
 /**
  * A class to get information about a running Test and collect the results.

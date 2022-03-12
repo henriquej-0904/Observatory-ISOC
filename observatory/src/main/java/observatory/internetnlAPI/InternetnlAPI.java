@@ -5,12 +5,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.TestInfo;
-import observatory.internetnlAPI.config.results.TestResult;
+import observatory.internetnlAPI.config.testResult.TestResult;
+import observatory.util.InvalidFormatException;
 import observatory.util.Util;
 
 /**

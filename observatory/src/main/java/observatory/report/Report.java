@@ -2,6 +2,7 @@ package observatory.report;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,7 +10,6 @@ import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -18,20 +18,16 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellAddress;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import observatory.internetnlAPI.config.RequestType;
 import observatory.tests.ListTest;
-import observatory.tests.collection.ListTestCollection;
+import observatory.util.Util;
 
 /**
  * Represents a Report based on the results provided.
  */
 public class Report
 {
-    private static final File WEB_TEMPLATE = new File("config/template-report-web.xlsx");
-    private static final File MAIL_TEMPLATE = new File("config/template-report-mail.xlsx");
-
     private static final String LIST_RESULTS_TEMPLATE_SHEET_NAME = "ListResults";
 
     private static final CellAddress ADDRESS_DATE_CELL = new CellAddress("A1");
@@ -40,32 +36,38 @@ public class Report
 
     private final RequestType type;
 
-    private final SortedMap<String, ListTest> results;
+    private final File templateWorkbookFile;
+
+    private final Set<ListTest> results;
 
     private Set<String> listsFullReport;
 
     private Calendar reportDate;
 
     /**
-     * Creates a new Report of the specified type and results folder.
+     * 
      * @param type - The type of report.
-     * @param resultsFolder - The location of the results.
+     * @param templateWorkbookFile - The location of the template workbook file.
+     * @param results - A set of list results.
      * @throws IOException
      */
-    public Report(RequestType type, File resultsFolder) throws IOException
+    public Report(RequestType type, File templateWorkbookFile, Set<ListTest> results) throws IOException
     {
         this.type = type;
+        this.templateWorkbookFile = Objects.requireNonNull(templateWorkbookFile);
+        if (!this.templateWorkbookFile.isFile())
+            throw new FileNotFoundException("There is no report template file.");
+        
+        this.results = results;
+        
         this.reportDate = Calendar.getInstance();
         this.listsFullReport = Set.of();
-        
-        ListTestCollection listTestCollection = new ListTestCollection(resultsFolder, type);
-        this.results = listTestCollection.getSortedResults();
     }
 
     /**
-     * Generates a report based on the results provided for the specified type and saves it.
+     * Generate a report based on the results provided for the specified type and saves it.
      * 
-     * @param report - The location of the report.
+     * @param report - The location to save the report.
      * @throws IOException
      * @throws InvalidTemplateException
      */
@@ -73,15 +75,10 @@ public class Report
     {
         Objects.requireNonNull(report);
 
-        File template = type == RequestType.WEB ? WEB_TEMPLATE : MAIL_TEMPLATE;
-
-        if (!template.isFile())
-            throw new InvalidTemplateException("There is no report template in the config folder.");
-
         try
         (
-            InputStream input = new FileInputStream(template);
-            Workbook workbook = new XSSFWorkbook(input);
+            InputStream input = new FileInputStream(this.templateWorkbookFile);
+            Workbook workbook = Util.openWorkbook(input);
         )
         {
             Sheet listResultsTemplate = workbook.getSheet(LIST_RESULTS_TEMPLATE_SHEET_NAME);
@@ -92,7 +89,7 @@ public class Report
             setReportDate(workbook, listResultsTemplate);
 
             // Generate List Reports.
-            for (ListTest listResults : this.results.values())
+            for (ListTest listResults : this.results)
             {
                 ListReport listReport = new ListReport(listResultsTemplate, listResults);
                 listReport.setFullReport(listsFullReport.contains(listResults.getName()));
@@ -104,13 +101,8 @@ public class Report
 
             workbook.setForceFormulaRecalculation(true);
 
-            try
-            (
-                OutputStream output = new FileOutputStream(report);
-            )
-            {
-                workbook.write(output);
-            }
+            try (OutputStream output = new FileOutputStream(report))
+                {workbook.write(output);}
         }
         catch (IOException | InvalidTemplateException e)
         {
@@ -163,7 +155,7 @@ public class Report
             .collect(Collectors.toSet());
         
         Set<String> toReturn = Set.copyOf(listsToCheck);
-        listsToCheck.removeAll(this.results.keySet());
+        listsToCheck.removeAll(this.results.stream().map(ListTest::getName).collect(Collectors.toList()));
 
         if (!listsToCheck.isEmpty())
             throw new IllegalArgumentException(

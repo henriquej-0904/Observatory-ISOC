@@ -27,6 +27,13 @@ public enum RequestType
         return type;
     } 
     
+    /**
+     * Parse a type.
+     * @param type
+     * @return The type.
+     * 
+     * @throws IllegalArgumentException if an illegal type is specified.
+     */
     public static RequestType parseType(String type)
     {
         switch (type.toUpperCase()) {

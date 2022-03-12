@@ -11,3 +11,5 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 *.conf
 *.properties
+/observatory/results/
+/observatory/config/

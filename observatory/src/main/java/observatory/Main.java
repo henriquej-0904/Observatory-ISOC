@@ -5,22 +5,29 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.text.ParseException;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-
+import observatory.argsParser.ParserException;
+import observatory.argsParser.ReportArgs;
+import observatory.argsParser.TestDomainsArgs;
 import observatory.internetnlAPI.InternetnlAPI;
 import observatory.internetnlAPI.InternetnlAPIOverNetwork;
 import observatory.internetnlAPI.config.InternetnlRequest;
-import observatory.internetnlAPI.config.RequestType;
+import observatory.internetnlAPI.config.testResult.TestResult;
 import observatory.report.Report;
+import observatory.tests.ListTest;
 import observatory.tests.TestDomains;
+import observatory.tests.index.Index;
+import observatory.util.InvalidFormatException;
+import observatory.util.Util;
 
 public class Main
 {
@@ -40,108 +47,59 @@ public class Main
         for (int i = 1; i < args.length; i++)
             nextArgs.add(args[i]);
         
-        switch (args[0].toLowerCase())
+        try
         {
-            case "test":
-                testDomains(nextArgs);
-                break;
-        
-            case "report":
-                report(nextArgs);
-                break;
+            switch (args[0].toLowerCase()) {
+                case "test":
+                    testDomains(new TestDomainsArgs(nextArgs));
+                    break;
 
-            default:
-                invalidArgs();
-                break;
+                case "report":
+                    report(new ReportArgs(nextArgs));
+                    break;
+
+                default:
+                    invalidArgsExit();
+                    break;
+            }
+        } catch (ParserException e) {
+            invalidArgsExit(e.getMessage());
         }
     }
 
     private static void printHelp()
     {
         System.out.println("Observatory commands:\n");
-
-        System.out.println("-> test <ALL | WEB | MAIL> <domains.xlsx> <results folder> [--overwrite] [lists to test]");
-        System.out.println("Test the lists of domains specified in the domains excel file and place "
-        + "the results in the results folder.\n" +
-        "If the results folder is not empty then this command " +
-        "will test all the remaining lists.\n" +
-        "Options:\n"+
-        "\t--overwrite -> Overwrite results if they were already tested.\n" +
-        "\tlists to test -> A set of lists to test.\n");
-
-        System.out.println("-> report <WEB | MAIL> <report.xlsx> <results folder> [--date <dd/MM/yyyy>] [lists to create a full report]");
-        System.out.println("Create a report of the specified type based on the results provided.");
-        System.out.println(
-            "Options:\n"+
-            "\t--date -> The date of the report in <dd/MM/yyyy> format.\n" +
-            "\tlists to create a full report -> The report of the specified lists will have the full results.\n"
-        );
+        TestDomainsArgs.printHelp();
+        System.out.println("-------------------------------------------------------------------------------------------------------\n");
+        ReportArgs.printHelp();
     }
 
-    private static void invalidArgs()
+    private static void invalidArgsExit()
     {
         System.err.println("Invalid arguments.\n");
         printHelp();
         System.exit(EXIT_ERROR_STATUS);
     }
 
-    private static void invalidArgs(String msg)
+    private static void invalidArgsExit(String msg)
     {
         System.err.println("Invalid arguments: " + msg + "\n");
         printHelp();
         System.exit(EXIT_ERROR_STATUS);
     }
 
-    private static void testDomains(List<String> args)
+    //#region Test Domains
+
+    private static void testDomains(TestDomainsArgs args)
     {
-        if (args.size() < 3)
-            invalidArgs();
-        
-        String typeStr = args.remove(0).toUpperCase();
-        File domains = new File(args.remove(0));
-        File resultsFolder = new File(args.remove(0));
-
-        boolean overwrite;
-
-        if (args.isEmpty())
-            overwrite = false;
-        else
-        {
-            String arg = args.get(0);
-            if (overwrite = arg.toLowerCase().equals("--overwrite"))
-                args.remove(0);
-        }
-
-        Properties batchConf = getInternetnlAPI_BatchConfig();
-        String endpoint = batchConf.getProperty("endpoint");
-        String username = batchConf.getProperty("username");
-        String password = batchConf.getProperty("password");
-
         try
         (
-            InternetnlAPI api =
-                new InternetnlAPIOverNetwork(new URI(endpoint), username, password);
+            InternetnlAPI api = getInternetnlAPI(args.getConfigFile());
+            TestDomains tests = initTestDomains(args, api);
         )
         {
-            if (typeStr.equals("ALL"))
-            {
-                RequestType[] types = RequestType.values();
-                for (RequestType type : types)
-                {
-                    try (TestDomains tests = initTestDomains(domains, resultsFolder, type, api, args);)
-                    {
-                        tests.start(overwrite); 
-                    }
-                }
-            }
-            else
-            {
-                RequestType type = RequestType.parseType(typeStr);
-                try (TestDomains tests = initTestDomains(domains, resultsFolder, type, api, args);)
-                {
-                    tests.start(overwrite); 
-                }
-            }
+            tests.start();
         }
         catch (Exception e) {
             System.err.println(e.getMessage());
@@ -149,15 +107,20 @@ public class Main
         }
     }
 
-    private static TestDomains initTestDomains(File domains, File resultsFolder,
-        RequestType type, InternetnlAPI api, List<String> args) throws InvalidFormatException, IOException
+    private static TestDomains initTestDomains(TestDomainsArgs args, InternetnlAPI api)
+        throws InvalidFormatException, IOException
     {
+        File workingDir = args.getWorkingDir();
+        File domainsFile = args.getDomainsFile();
+        Index index = Util.getIndexIfExists(new File(args.getWorkingDir(), Index.DEFAULT_FILE_NAME));
+
         TestDomains tests;
-        if (!args.isEmpty())
-            tests = new TestDomains(domains, resultsFolder, api, type, Set.copyOf(args));
+        if (args.getListsToTest().isEmpty()) // test all lists
+            tests = new TestDomains(args.getType(), api, index, workingDir, domainsFile);
         else
-            tests = new TestDomains(domains, resultsFolder, api, type);
-        
+            // test the specified lists
+            tests = new TestDomains(args.getType(), api, index, workingDir, domainsFile, args.getListsToTest());
+
         tests.setListSubmittedListener((submitted) ->
             printTestProgress(submitted.getRequest(), "submitted"));
 
@@ -178,43 +141,21 @@ public class Main
             status);
     }
 
-    private static Properties getInternetnlAPI_BatchConfig()
-    {
-        Properties props = new Properties();
-        try (InputStream input = new FileInputStream("config/internetnlBatchAPI.properties");)
-        {
-            props.load(input);
-        }
-        catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.exit(EXIT_ERROR_STATUS);
-        }
-        return props;
-    }
+    //#endregion
 
-    private static void report(List<String> args)
-    {
-        if (args.size() < 3)
-            invalidArgs();
-        
+    //#region Report
+
+    private static void report(ReportArgs args)
+    {        
         try
         {
-            RequestType type = RequestType.parseType(args.remove(0));
-            File reportLocation = new File(args.remove(0));
-            File resultsFolder = new File(args.remove(0));
+            Report report = new Report(args.getType(), args.getTemplateFile(),
+                parseListResults(args));
 
-            Report report = new Report(type, resultsFolder);
+            report.setReportDate(args.getReportDate());
+            report.setListsFullReport(Set.copyOf(args.getListsFullReport()));
 
-            if (!args.isEmpty() && args.get(0).equals("--date"))
-            {
-                args.remove(0);
-                report.setReportDate(parseDate(args));
-            }
-
-            if (!args.isEmpty())
-                report.setListsFullReport(Set.copyOf(args));
-
-            report.generateAndSaveReport(reportLocation);
+            report.generateAndSaveReport(args.getReportFile());
             System.out.println("Report generated successfully.");
         }
         catch (Exception e) {
@@ -223,21 +164,59 @@ public class Main
         }
     }
 
-    private static Calendar parseDate(List<String> args)
+    private static Set<ListTest> parseListResults(ReportArgs args) throws IOException, InvalidFormatException
     {
-        if (args.isEmpty())
-            invalidArgs("Expected a date.");
-
-        final String dateFormatStr = "dd/MM/yyyy";
-        final SimpleDateFormat dateFormat = new SimpleDateFormat(dateFormatStr);
-        final Calendar cal = Calendar.getInstance();
-
-        try {
-            cal.setTime(dateFormat.parse(args.remove(0)));
-        } catch (ParseException e) {
-            invalidArgs("Invalid date format specified.");
+        List<File> listsResultFiles = args.getListsResultFiles();
+        Set<ListTest> result = new LinkedHashSet<>(listsResultFiles.size());
+        
+        for (File listResultFile : listsResultFiles)
+        {
+            TestResult testResult = TestResult.fromFile(listResultFile);
+            result.add(ListTest.from(testResult));
         }
 
-        return cal;
+        return result;
+    }
+
+    //#endregion
+
+    /**
+     * Get the Internet.nl API based on the specified config file.
+     * @param configFile - The config file.
+     * @return The Internet.nl API
+     */
+    private static InternetnlAPI getInternetnlAPI(File configFile)
+    {
+        Properties props = new Properties();
+        try (InputStream input = new FileInputStream(configFile))
+        {
+            props.load(input);
+        }
+        catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.exit(EXIT_ERROR_STATUS);
+        }
+
+        Function<String, String> getProperty =
+            (prop) -> {
+                String value = props.getProperty(prop);
+                if (value == null)
+                    invalidArgsExit(String.format("Invalid Internet.nl API config file. %s is not defined.", prop));
+
+                return value;
+            };
+
+        URI endpoint = null;
+        String username = getProperty.apply("username");
+        String password = getProperty.apply("password");
+
+        try {
+            endpoint = new URI(getProperty.apply("endpoint"));
+        } catch (URISyntaxException e)
+        {
+            invalidArgsExit("Invalid endpoint URI in Internet.nl API config file.");
+        }
+
+        return new InternetnlAPIOverNetwork(endpoint, username, password);
     }
 }

@@ -1,4 +1,4 @@
-package observatory.internetnlAPI.config.results.domain;
+package observatory.internetnlAPI.config.testResult.domain;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

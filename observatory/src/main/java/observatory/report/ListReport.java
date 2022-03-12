@@ -19,12 +19,12 @@ import org.apache.poi.ss.util.CellRangeAddress;
 
 import observatory.internetnlAPI.config.InternetnlRequest;
 import observatory.internetnlAPI.config.RequestType;
-import observatory.internetnlAPI.config.results.domain.Category;
-import observatory.internetnlAPI.config.results.domain.CustomTest;
-import observatory.internetnlAPI.config.results.domain.DomainResults;
-import observatory.internetnlAPI.config.results.domain.ResultStatus;
-import observatory.internetnlAPI.config.results.domain.Results;
-import observatory.internetnlAPI.config.results.domain.Test;
+import observatory.internetnlAPI.config.testResult.domain.Category;
+import observatory.internetnlAPI.config.testResult.domain.CustomTest;
+import observatory.internetnlAPI.config.testResult.domain.DomainResults;
+import observatory.internetnlAPI.config.testResult.domain.ResultStatus;
+import observatory.internetnlAPI.config.testResult.domain.Results;
+import observatory.internetnlAPI.config.testResult.domain.Test;
 import observatory.tests.ListTest;
 
 /**
