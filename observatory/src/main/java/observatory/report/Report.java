@@ -2,6 +2,7 @@ package observatory.report;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,7 +54,10 @@ public class Report
     public Report(RequestType type, File templateWorkbookFile, Set<ListTest> results) throws IOException
     {
         this.type = type;
-        this.templateWorkbookFile = templateWorkbookFile;
+        this.templateWorkbookFile = Objects.requireNonNull(templateWorkbookFile);
+        if (!this.templateWorkbookFile.isFile())
+            throw new FileNotFoundException("There is no report template file.");
+        
         this.results = results;
         
         this.reportDate = Calendar.getInstance();
@@ -70,9 +74,6 @@ public class Report
     public void generateAndSaveReport(File report) throws IOException, InvalidTemplateException
     {
         Objects.requireNonNull(report);
-
-        if (!this.templateWorkbookFile.isFile())
-            throw new InvalidTemplateException("There is no report template in the config folder.");
 
         try
         (
