@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import observatory.argsParser.options.Option;
 import observatory.argsParser.options.OptionType;
@@ -13,6 +12,8 @@ import observatory.argsParser.options.OptionValue;
 import observatory.argsParser.options.ParseOptions;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.util.Util;
+
+import static observatory.argsParser.ArgsParser.*;
 
 public class TestDomainsArgs {
     private static final String DEFAULT_INTERNTNL_API_CONFIG_FILE_NAME = "intnl.properties";
@@ -37,7 +38,7 @@ public class TestDomainsArgs {
         if (args.isEmpty())
             throw new ParserException("Not enough arguments.");
 
-        this.type = RequestType.parseType(args.remove(0));
+        this.type = parseType(args.remove(0));
         this.options = PARSE_OPTIONS.parse(args);
         this.listsToTest = Set.copyOf(args);
 
@@ -61,8 +62,8 @@ public class TestDomainsArgs {
     public File getWorkingDir()
     {
         if (this.workingDir == null)
-            this.workingDir = getOption(OPTION_WORKING_DIR,
-                (optionValue) ->
+            this.workingDir = getOption(this.options, OPTION_WORKING_DIR,
+                (Function<OptionValue, File>) (optionValue) ->
                 {
                     return new File(optionValue.getSingle());
                 },
@@ -74,8 +75,8 @@ public class TestDomainsArgs {
     public File getConfigFile()
     {
         if (this.configFile == null)
-            this.configFile = getOption(OPTION_CONFIG_FILE,
-                (optionValue) ->
+            this.configFile = getOption(this.options, OPTION_CONFIG_FILE,
+                (Function<OptionValue, File>) (optionValue) ->
                 {
                     return new File(optionValue.getSingle());
                 },
@@ -87,25 +88,14 @@ public class TestDomainsArgs {
     public File getDomainsFile()
     {
         if (this.domainsFile == null)
-            this.domainsFile = getOption(OPTION_DOMAINS_FILE,
-                (optionValue) ->
+            this.domainsFile = getOption(this.options, OPTION_DOMAINS_FILE,
+                (Function<OptionValue, File>) (optionValue) ->
                 {
                     return new File(optionValue.getSingle());
                 },
                 () -> new File(getWorkingDir(), DEFAULT_DOMAINS_WORKBOOK_FILE_NAME));
 
         return this.domainsFile;
-    }
-
-    private <T> T getOption(Option option, Function<OptionValue, T> getValueFunc,
-        Supplier<T> defaultValueFunc)
-    {
-        OptionValue optionValue = this.options.get(option);
-
-        if (optionValue != null)
-            return getValueFunc.apply(optionValue);
-
-        return defaultValueFunc.get();
     }
 
     public static void printHelp() {

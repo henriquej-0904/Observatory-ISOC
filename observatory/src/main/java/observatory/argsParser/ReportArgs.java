@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import observatory.argsParser.options.Option;
@@ -16,6 +15,8 @@ import observatory.argsParser.options.OptionType;
 import observatory.argsParser.options.OptionValue;
 import observatory.argsParser.options.ParseOptions;
 import observatory.internetnlAPI.config.RequestType;
+
+import static observatory.argsParser.ArgsParser.*;
 
 public class ReportArgs
 {
@@ -49,7 +50,7 @@ public class ReportArgs
         if (args.isEmpty())
             throw new ParserException("Not enough arguments.");
 
-        this.type = RequestType.parseType(args.remove(0));
+        this.type = parseType(args.remove(0));
         this.options = PARSE_OPTIONS.parse(args);
         this.reportFile = parseReportFile(args);
         this.listsResultFiles = parseResultFiles(args);
@@ -99,7 +100,7 @@ public class ReportArgs
     public File getTemplateFile()
     {
         if (this.templateFile == null)
-            this.templateFile = getOption(OPTION_TEMPLATE_FILE, (Function<OptionValue, File>)
+            this.templateFile = getOption(this.options, OPTION_TEMPLATE_FILE, (Function<OptionValue, File>)
                 (optionValue) ->
                 {
                     return new File(optionValue.getSingle());
@@ -112,7 +113,7 @@ public class ReportArgs
     public Calendar getReportDate() throws ParserException
     {
         if (this.date == null)
-            this.date = getOption(OPTION_DATE, (ParseValueFunction<Calendar>)
+            this.date = getOption(this.options, OPTION_DATE, (ParseValueFunction<Calendar>)
                 (optionValue) ->
                 {
                     return parseDate(optionValue.getSingle());
@@ -125,7 +126,7 @@ public class ReportArgs
     public List<String> getListsFullReport()
     {
         if (this.listsFullReport == null)
-            this.listsFullReport = getOption(OPTION_FULL_REPORT,
+            this.listsFullReport = getOption(this.options, OPTION_FULL_REPORT,
                 (Function<OptionValue, List<String>>) OptionValue::getList,
                 List::of);
 
@@ -133,28 +134,6 @@ public class ReportArgs
     }
 
     //#endregion
-
-    private <T> T getOption(Option option, ParseValueFunction<T> parseValueFunc,
-        Supplier<T> defaultValueFunc) throws ParserException
-    {
-        OptionValue optionValue = this.options.get(option);
-
-        if (optionValue != null)
-            return parseValueFunc.parse(optionValue);
-
-        return defaultValueFunc.get();
-    }
-
-    private <T> T getOption(Option option, Function<OptionValue, T> parseValueFunc,
-        Supplier<T> defaultValueFunc)
-    {
-        OptionValue optionValue = this.options.get(option);
-
-        if (optionValue != null)
-            return parseValueFunc.apply(optionValue);
-
-        return defaultValueFunc.get();
-    }
 
     private static Calendar parseDate(String date) throws ParserException
     {
@@ -185,17 +164,5 @@ public class ReportArgs
             "\t" + OPTION_FULL_REPORT.getName() + " list-name -> The report of the specified list name will have the full results. " +
             "This option can be repeated.\n"
         );
-    }
-
-    private static interface ParseValueFunction<T>
-    {
-        /**
-         * Parse a value.
-         * 
-         * @param value - The value to parse.
-         * @return The parsed result.
-         * @throws ParserException if an error occurred while parsing the specified value.
-         */
-        T parse(OptionValue value) throws ParserException;
     }
 }
