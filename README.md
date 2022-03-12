@@ -34,4 +34,4 @@ O programa suporta 2 comandos:
 - test -> Execução dos testes a listas de domínios.
 - report -> Criação de um relatório baseado em resultados obtidos.
 
-Para mais informações sobre os comandos suportados, deve-se executar o programa sem argumentos
+Para mais informações sobre os comandos suportados e respectivas opções, deve-se consultar o ficheiro programa-e-parametros.docx
