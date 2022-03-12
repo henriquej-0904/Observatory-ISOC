@@ -55,13 +55,6 @@ public class TestDomains implements Closeable
     private Consumer<TestInfo> listSubmittedListener;
     private Consumer<ListTest> listFetchedResultsListener;
 
-    public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder)
-        throws IOException, InvalidFormatException
-    {
-        this(type, api, index, resultsFolder,
-            new File(Objects.requireNonNull(resultsFolder), DEFAULT_DOMAINS_WORKBOOK_FILE_NAME));
-    }
-
     public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder, File domainsWorkbookFile)
         throws IOException, InvalidFormatException
     {
@@ -80,13 +73,6 @@ public class TestDomains implements Closeable
 
         for (Sheet sheet : this.domains)
             this.listsToTest.add(sheet.getSheetName().toUpperCase());
-    }
-
-    public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder, Set<String> listsToTest)
-        throws IOException, InvalidFormatException
-    {
-        this(type, api, index, resultsFolder,
-            new File(Objects.requireNonNull(resultsFolder), DEFAULT_DOMAINS_WORKBOOK_FILE_NAME), listsToTest);
     }
 
     public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder,
