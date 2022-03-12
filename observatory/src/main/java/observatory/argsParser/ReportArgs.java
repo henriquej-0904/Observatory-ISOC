@@ -19,6 +19,8 @@ import observatory.internetnlAPI.config.RequestType;
 import static observatory.argsParser.ArgsParser.*;
 
 /**
+ * A class to parse the arguments for the report cmd.
+ * 
  * @author Henrique Campos Ferreira
  */
 public class ReportArgs

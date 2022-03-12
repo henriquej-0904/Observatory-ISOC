@@ -16,6 +16,8 @@ import observatory.util.Util;
 import static observatory.argsParser.ArgsParser.*;
 
 /**
+ * A class to parse the arguments for the test domains cmd.
+ * 
  * @author Henrique Campos Ferreira
  */
 public class TestDomainsArgs {
