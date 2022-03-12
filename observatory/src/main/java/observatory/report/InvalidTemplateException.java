@@ -1,5 +1,8 @@
 package observatory.report;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 public class InvalidTemplateException extends Exception {
 
     /**

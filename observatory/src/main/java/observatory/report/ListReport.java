@@ -29,6 +29,8 @@ import observatory.tests.ListTest;
 
 /**
  * A class to create a report from the results of a List.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class ListReport
 {

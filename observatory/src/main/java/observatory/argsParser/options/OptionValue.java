@@ -3,7 +3,9 @@ package observatory.argsParser.options;
 import java.util.List;
 
 /**
- * Represents the value of an option
+ * Represents the value of an option.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public abstract class OptionValue
 {

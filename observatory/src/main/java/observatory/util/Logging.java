@@ -11,6 +11,8 @@ import java.util.logging.SimpleFormatter;
 
 /**
  * Provides functions to configure loggers.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class Logging
 {

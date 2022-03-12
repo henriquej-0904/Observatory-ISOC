@@ -3,6 +3,9 @@ package observatory.argsParser.options;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 public class ListOptionValue extends OptionValue
 {
     /**

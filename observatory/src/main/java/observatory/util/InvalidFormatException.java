@@ -1,5 +1,8 @@
 package observatory.util;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 public class InvalidFormatException extends Exception {
 
     /**

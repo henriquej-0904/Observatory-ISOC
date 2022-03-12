@@ -2,6 +2,8 @@ package observatory.internetnlAPI;
 
 /**
  * Thrown when there is no test with the specified ID.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class TestIdNotFoundException extends InternetnlAPIException
 {

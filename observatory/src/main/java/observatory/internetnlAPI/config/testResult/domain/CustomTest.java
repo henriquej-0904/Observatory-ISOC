@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * Represents custom tests.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public enum CustomTest
 {

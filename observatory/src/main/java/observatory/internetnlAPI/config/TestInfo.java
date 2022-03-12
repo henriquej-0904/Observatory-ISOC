@@ -2,6 +2,8 @@ package observatory.internetnlAPI.config;
 
 /**
  * Represents information about a Test in the internet.nl API.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class TestInfo
 {

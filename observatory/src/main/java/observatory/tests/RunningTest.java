@@ -9,6 +9,8 @@ import observatory.internetnlAPI.config.testResult.TestResult;
 
 /**
  * A class to get information about a running Test and collect the results.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class RunningTest
 {

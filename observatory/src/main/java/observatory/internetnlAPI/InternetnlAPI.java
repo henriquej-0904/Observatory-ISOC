@@ -15,6 +15,8 @@ import observatory.util.Util;
 
 /**
  * Represents the available operations to interact with the Internet.nl API.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public interface InternetnlAPI extends AutoCloseable
 {

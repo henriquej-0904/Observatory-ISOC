@@ -2,6 +2,8 @@ package observatory.internetnlAPI;
 
 /**
  * Represents an error while executing an operation in the Internetnl API.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class InternetnlAPIException extends Exception
 {

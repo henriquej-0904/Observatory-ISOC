@@ -12,6 +12,8 @@ import observatory.util.InvalidFormatException;
 
 /**
  * Represents the results of a test.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class TestResult
 {

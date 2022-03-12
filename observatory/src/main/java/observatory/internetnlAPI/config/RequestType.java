@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * The type of requests.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public enum RequestType
 {

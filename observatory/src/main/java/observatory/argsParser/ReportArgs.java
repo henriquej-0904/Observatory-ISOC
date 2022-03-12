@@ -18,6 +18,9 @@ import observatory.internetnlAPI.config.RequestType;
 
 import static observatory.argsParser.ArgsParser.*;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 public class ReportArgs
 {
     private static final String WEB_TEMPLATE_FILE = "template-web.xlsx";

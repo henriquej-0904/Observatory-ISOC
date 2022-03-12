@@ -32,6 +32,8 @@ import observatory.util.Util;
 
 /**
  * A class to test the domains in a set of lists.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class TestDomains implements Closeable
 {

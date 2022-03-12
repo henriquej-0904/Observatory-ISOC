@@ -2,6 +2,8 @@ package observatory.argsParser.options;
 
 /**
  * The type of option.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public enum OptionType {
     /**

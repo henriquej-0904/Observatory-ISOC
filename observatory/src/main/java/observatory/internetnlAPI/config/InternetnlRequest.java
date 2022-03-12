@@ -2,6 +2,8 @@ package observatory.internetnlAPI.config;
 
 /**
  * Represents a Test request in the Internetnl API.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class InternetnlRequest
 {

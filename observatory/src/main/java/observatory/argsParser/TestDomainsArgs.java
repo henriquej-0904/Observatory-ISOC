@@ -15,6 +15,9 @@ import observatory.util.Util;
 
 import static observatory.argsParser.ArgsParser.*;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 public class TestDomainsArgs {
     private static final String DEFAULT_INTERNTNL_API_CONFIG_FILE_NAME = "intnl.properties";
     public static final String DEFAULT_DOMAINS_WORKBOOK_FILE_NAME = "domains.xlsx";

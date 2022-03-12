@@ -11,6 +11,8 @@ import observatory.internetnlAPI.config.RequestType;
 
 /**
  * Represents the categories of the tests performed by the internet.nl API.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public enum Category
 {

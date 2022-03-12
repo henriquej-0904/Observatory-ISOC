@@ -17,6 +17,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.tests.index.Index;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 public class Util
 {
     /**

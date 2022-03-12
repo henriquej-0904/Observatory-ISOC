@@ -2,6 +2,8 @@ package observatory.internetnlAPI.config.testResult.domain;
 
 /**
  * Represents a result of a test or category.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class Result
 {

@@ -8,6 +8,9 @@ import observatory.argsParser.options.Option;
 import observatory.argsParser.options.OptionValue;
 import observatory.internetnlAPI.config.RequestType;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 class ArgsParser
 {
     /**

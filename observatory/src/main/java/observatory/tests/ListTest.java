@@ -4,6 +4,8 @@ import observatory.internetnlAPI.config.testResult.TestResult;
 
 /**
  * Represents a Test of a List of domains with it's results.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class ListTest
 {

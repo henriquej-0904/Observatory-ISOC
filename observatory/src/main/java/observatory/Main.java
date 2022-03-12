@@ -29,6 +29,9 @@ import observatory.tests.index.Index;
 import observatory.util.InvalidFormatException;
 import observatory.util.Util;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 public class Main
 {
     private static final int EXIT_ERROR_STATUS = 1;

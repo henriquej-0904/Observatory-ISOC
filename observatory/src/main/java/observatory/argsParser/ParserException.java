@@ -1,5 +1,8 @@
 package observatory.argsParser;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 public class ParserException extends Exception {
 
     /**

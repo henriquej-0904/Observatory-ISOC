@@ -1,5 +1,8 @@
 package observatory.internetnlAPI.config.testResult.domain;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 public class DomainResults
 {
     private String status;

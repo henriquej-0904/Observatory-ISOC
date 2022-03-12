@@ -1,7 +1,9 @@
 package observatory.argsParser.options;
 
 /**
- * Represents an option. 
+ * Represents an option.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class Option
 {

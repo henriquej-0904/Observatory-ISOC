@@ -16,6 +16,8 @@ import observatory.util.InvalidFormatException;
 
 /**
  * Represents an index that maps a list name to a test id.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class Index implements Map<String, String>
 {

@@ -8,6 +8,8 @@ import observatory.tests.ListTest;
 
 /**
  * Represents a collection of results.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class ListTestCollection
 {

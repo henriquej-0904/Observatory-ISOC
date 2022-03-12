@@ -2,6 +2,9 @@ package observatory.util.restResult;
 
 import jakarta.ws.rs.core.Response.Status;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 class ErrorResult<T> implements Result<T> {
     final Status error;
 

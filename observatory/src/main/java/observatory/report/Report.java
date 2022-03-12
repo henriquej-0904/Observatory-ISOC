@@ -25,6 +25,8 @@ import observatory.util.Util;
 
 /**
  * Represents a Report based on the results provided.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class Report
 {

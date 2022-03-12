@@ -24,6 +24,8 @@ import observatory.util.restResult.Result;
 
 /**
  * An implementation of InternetnlAPI that communicates via HTTP.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class InternetnlAPIOverNetwork implements InternetnlAPI
 {

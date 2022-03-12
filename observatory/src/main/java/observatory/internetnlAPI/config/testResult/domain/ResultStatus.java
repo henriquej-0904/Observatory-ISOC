@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * Represents the result status of a category or test.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public enum ResultStatus
 {

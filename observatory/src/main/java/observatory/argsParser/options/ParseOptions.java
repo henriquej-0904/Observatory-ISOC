@@ -11,6 +11,8 @@ import observatory.argsParser.ParserException;
 
 /**
  * A class to parse options from a list of arguments.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class ParseOptions
 {

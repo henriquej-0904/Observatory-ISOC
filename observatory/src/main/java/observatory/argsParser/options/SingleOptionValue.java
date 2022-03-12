@@ -1,5 +1,8 @@
 package observatory.argsParser.options;
 
+/**
+ * @author Henrique Campos Ferreira
+ */
 public class SingleOptionValue extends OptionValue
 {
     /**

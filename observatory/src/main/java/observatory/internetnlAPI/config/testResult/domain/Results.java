@@ -4,6 +4,8 @@ import java.util.Map;
 
 /**
  * Represents the results of all categories and tests of a domain.
+ * 
+ * @author Henrique Campos Ferreira
  */
 public class Results
 {
