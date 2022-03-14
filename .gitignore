@@ -13,3 +13,4 @@ buildNumber.properties
 *.properties
 /observatory/results/
 /observatory/config/
+workspace.code-workspace
