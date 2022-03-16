@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Objects;
 import java.util.Set;
@@ -33,7 +34,8 @@ public class Report
     private static final String LIST_RESULTS_TEMPLATE_SHEET_NAME = "ListResults";
 
     private static final CellAddress ADDRESS_DATE_CELL = new CellAddress("A1");
-    private static final String DATE_FORMAT = "%DATE%";
+    private static final String DATE_CELL = "%DATE%";
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
 
 
     private final RequestType type;
@@ -123,6 +125,8 @@ public class Report
      */
     private void setReportDate(Workbook workbook, Sheet listResultsTemplate)
     {
+        String date = DATE_FORMAT.format(this.getReportDate().getTime());
+        
         for (int i = 0; i < workbook.getSheetIndex(listResultsTemplate); i++)
         {
             Sheet sheet = workbook.getSheetAt(i);
@@ -134,13 +138,7 @@ public class Report
                 if (cell.getCellType() == CellType.STRING)
                 {
                     String valueFormat = cell.getStringCellValue();
-
-                    String date = String.format("%d/%d/%d",
-                        this.reportDate.get(Calendar.DAY_OF_MONTH),
-                        this.reportDate.get(Calendar.MONTH) + 1,
-                        this.reportDate.get(Calendar.YEAR));
-                        
-                    cell.setCellValue(valueFormat.replace(DATE_FORMAT, date));
+                    cell.setCellValue(valueFormat.replace(DATE_CELL, date));
                 }
             }
         }
