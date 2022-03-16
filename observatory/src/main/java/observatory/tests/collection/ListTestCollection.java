@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
+import observatory.internetnlAPI.config.testResult.TestResult;
 import observatory.tests.ListTest;
+import observatory.util.InvalidFormatException;
 
 /**
  * Represents a collection of results.
@@ -37,6 +39,18 @@ public class ListTestCollection
     public void saveListResults(ListTest list) throws IOException
     {
         list.getResults().save(getListResultsFile(list.getName()));
+    }
+
+    /**
+     * Get the results of the specified list.
+     * @param listName
+     * @return The List Test results.
+     * @throws IOException
+     * @throws InvalidFormatException
+     */
+    public ListTest getListResults(String listName) throws IOException, InvalidFormatException
+    {
+        return ListTest.from(TestResult.fromFile(getListResultsFile(listName)));
     }
 
     /**
