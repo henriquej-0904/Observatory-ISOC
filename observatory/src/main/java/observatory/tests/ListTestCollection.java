@@ -1,11 +1,10 @@
-package observatory.tests.collection;
+package observatory.tests;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
 import observatory.internetnlAPI.config.testResult.TestResult;
-import observatory.tests.ListTest;
 import observatory.util.InvalidFormatException;
 
 /**
