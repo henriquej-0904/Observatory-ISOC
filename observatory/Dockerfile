@@ -20,6 +20,6 @@ FROM openjdk:11-jre-slim
 
 # COPY observatory
 WORKDIR /observatory
-COPY --from=build /observatory/target/observatory-1.0-jar-with-dependencies.jar /observatory/observatory.jar
+COPY --from=build /observatory/target/observatory-1.1-jar-with-dependencies.jar /observatory/observatory.jar
 
 ENTRYPOINT [ "java", "-jar", "/observatory/observatory.jar" ]
