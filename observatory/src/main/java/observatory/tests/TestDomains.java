@@ -24,7 +24,6 @@ import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.TestInfo;
 import observatory.internetnlAPI.config.testResult.TestResult;
 import observatory.internetnlAPI.config.testResult.domain.DomainResults;
-import observatory.tests.index.Index;
 import observatory.util.InvalidFormatException;
 import observatory.util.Logging;
 import observatory.util.Util;

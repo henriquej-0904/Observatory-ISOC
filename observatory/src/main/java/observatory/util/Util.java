@@ -15,7 +15,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import observatory.internetnlAPI.config.RequestType;
-import observatory.tests.index.Index;
+import observatory.tests.Index;
 
 /**
  * @author Henrique Campos Ferreira
