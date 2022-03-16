@@ -55,6 +55,18 @@ public class TestDomains implements Closeable
     private Consumer<TestInfo> listSubmittedListener;
     private Consumer<ListTest> listFetchedResultsListener;
 
+    /**
+     * Creates a new TestDomains instance.
+     * 
+     * @param type The type of tests to perform.
+     * @param api The api implementation.
+     * @param index The index associated with the tests.
+     * @param resultsFolder The results folder.
+     * @param domainsWorkbookFile The workbook that contains the lists of domains to test.
+     * 
+     * @throws IOException
+     * @throws InvalidFormatException if the domains workbook has an invalid format or is corrupted.
+     */
     public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder, File domainsWorkbookFile)
         throws IOException, InvalidFormatException
     {
@@ -67,7 +79,7 @@ public class TestDomains implements Closeable
         this.domains = Util.openWorkbook(this.domainsInputStream);
 
         if (this.domains.getNumberOfSheets() == 0)
-            throw new IllegalArgumentException("There is no domains to test.");
+            throw new InvalidFormatException("There is no domains to test.");
 
         this.listsToTest = new TreeSet<>();
 
@@ -75,9 +87,22 @@ public class TestDomains implements Closeable
             this.listsToTest.add(sheet.getSheetName().toUpperCase());
     }
 
+    /**
+     * Creates a new TestDomains instance.
+     * 
+     * @param type The type of tests to perform.
+     * @param api The api implementation.
+     * @param index The index associated with the tests.
+     * @param resultsFolder The results folder.
+     * @param domainsWorkbookFile The workbook that contains the lists of domains to test.
+     * @param listsToTest A set of lists to test.
+     * 
+     * @throws IOException
+     * @throws InvalidFormatException if the domains workbook has an invalid format or is corrupted.
+     */    
     public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder,
         File domainsWorkbookFile, Set<String> listsToTest)
-        throws IOException, InvalidFormatException
+            throws IOException, InvalidFormatException
     {
         this.type = type;
         this.api = Objects.requireNonNull(api);
@@ -88,7 +113,7 @@ public class TestDomains implements Closeable
         this.domains = Util.openWorkbook(this.domainsInputStream);
 
         if (this.domains.getNumberOfSheets() == 0)
-            throw new IllegalArgumentException("There is no domains to test.");
+            throw new InvalidFormatException("There is no domains to test.");
 
         this.listsToTest = checkListsToTest(Objects.requireNonNull(listsToTest), this.domains);
     }
