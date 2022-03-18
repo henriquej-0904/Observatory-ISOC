@@ -24,8 +24,6 @@ import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.TestInfo;
 import observatory.internetnlAPI.config.testResult.TestResult;
 import observatory.internetnlAPI.config.testResult.domain.DomainResults;
-import observatory.tests.collection.ListTestCollection;
-import observatory.tests.index.Index;
 import observatory.util.InvalidFormatException;
 import observatory.util.Logging;
 import observatory.util.Util;
@@ -57,6 +55,18 @@ public class TestDomains implements Closeable
     private Consumer<TestInfo> listSubmittedListener;
     private Consumer<ListTest> listFetchedResultsListener;
 
+    /**
+     * Creates a new TestDomains instance.
+     * 
+     * @param type The type of tests to perform.
+     * @param api The api implementation.
+     * @param index The index associated with the tests.
+     * @param resultsFolder The results folder.
+     * @param domainsWorkbookFile The workbook that contains the lists of domains to test.
+     * 
+     * @throws IOException
+     * @throws InvalidFormatException if the domains workbook has an invalid format or is corrupted.
+     */
     public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder, File domainsWorkbookFile)
         throws IOException, InvalidFormatException
     {
@@ -69,7 +79,7 @@ public class TestDomains implements Closeable
         this.domains = Util.openWorkbook(this.domainsInputStream);
 
         if (this.domains.getNumberOfSheets() == 0)
-            throw new IllegalArgumentException("There is no domains to test.");
+            throw new InvalidFormatException("There is no domains to test.");
 
         this.listsToTest = new TreeSet<>();
 
@@ -77,9 +87,22 @@ public class TestDomains implements Closeable
             this.listsToTest.add(sheet.getSheetName().toUpperCase());
     }
 
+    /**
+     * Creates a new TestDomains instance.
+     * 
+     * @param type The type of tests to perform.
+     * @param api The api implementation.
+     * @param index The index associated with the tests.
+     * @param resultsFolder The results folder.
+     * @param domainsWorkbookFile The workbook that contains the lists of domains to test.
+     * @param listsToTest A set of lists to test.
+     * 
+     * @throws IOException
+     * @throws InvalidFormatException if the domains workbook has an invalid format or is corrupted.
+     */    
     public TestDomains(RequestType type, InternetnlAPI api, Index index, File resultsFolder,
         File domainsWorkbookFile, Set<String> listsToTest)
-        throws IOException, InvalidFormatException
+            throws IOException, InvalidFormatException
     {
         this.type = type;
         this.api = Objects.requireNonNull(api);
@@ -90,7 +113,7 @@ public class TestDomains implements Closeable
         this.domains = Util.openWorkbook(this.domainsInputStream);
 
         if (this.domains.getNumberOfSheets() == 0)
-            throw new IllegalArgumentException("There is no domains to test.");
+            throw new InvalidFormatException("There is no domains to test.");
 
         this.listsToTest = checkListsToTest(Objects.requireNonNull(listsToTest), this.domains);
     }
@@ -167,7 +190,8 @@ public class TestDomains implements Closeable
     {
         try
         {
-            if (this.listTestCollection.isListResultsAvailable(list))
+            if (this.listTestCollection.isListResultsAvailable(list) &&
+                checkIndexConsistency(list))
             {
                 logger.info(String.format("Already tested list %s of type %s", list, this.type.getType()));
                 return;
@@ -175,7 +199,8 @@ public class TestDomains implements Closeable
 
             String[] domainsList = Util.getDomainsList(this.domains, list, this.type);
 
-            if (!this.index.hasList(list))
+            String testId = this.index.get(list);
+            if (testId == null)
             {
                 RunningTest test = startTest(list, domainsList);
                 waitAndSaveResults(test, list, domainsList);
@@ -183,8 +208,6 @@ public class TestDomains implements Closeable
             else
             {
                 //try to get the results of a previous test. If not, launch a new one.
-                String testId = this.index.get(list);
-
                 logger.info(String.format("Already started %s test on list %s with test id: %s",
                     this.type.getType(), list, testId));
 
@@ -206,6 +229,36 @@ public class TestDomains implements Closeable
                 type.getType(), list, e.getMessage()));
             throw e;
         }
+    }
+
+    /**
+     * Check the index consistency.
+     * @param list
+     * @return true if index is consistent or false otherwise.
+     * @throws IOException
+     */
+    private boolean checkIndexConsistency(String list) throws IOException
+    {
+        try
+        {
+            ListTest listTest = this.listTestCollection.getListResults(list);
+            String listTestId = listTest.getResults().getRequest().getRequest_id();
+
+            // Test List results are corrupted.
+            // Request id must not be null.
+            if (listTestId == null)
+                return false;
+
+            this.index.assocList(list, listTestId);
+            this.index.save();
+
+            return true;
+
+        } catch (InvalidFormatException e) {
+            // if an error occurrs then the index is not consistent.
+        }
+
+        return false;
     }
 
     /**

@@ -1,4 +1,4 @@
-package observatory.tests.index;
+package observatory.tests;
 
 import java.io.File;
 import java.io.IOException;
