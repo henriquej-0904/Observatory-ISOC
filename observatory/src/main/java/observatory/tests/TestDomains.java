@@ -225,8 +225,8 @@ public class TestDomains implements Closeable
                 }
             }
         } catch (IOException | InternetnlAPIException e) {
-            logger.severe(String.format("An error occurred during %s test on list %s.\n%s",
-                type.getType(), list, e.getMessage()));
+            Logging.logStackTraceException(logger, e, String.format("An error occurred during %s test on list %s.",
+            type.getType(), list));
             throw e;
         }
     }
