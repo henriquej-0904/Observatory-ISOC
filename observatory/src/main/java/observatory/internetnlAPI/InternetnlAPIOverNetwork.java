@@ -167,7 +167,7 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
                 error = e;
             }
             catch (Exception e) {
-                error = new InternetnlAPIException("An error occurred calling the API.", e);
+                error = new InternetnlAPIException("An error occurred calling the API:\n" + e.getMessage(), e);
             }
 
             if (error != null)
@@ -203,7 +203,7 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
                 return Result.ok(value);
             } catch (Exception e)
             {
-                throw new InternetnlAPIException("An error occurred calling the API.", e);
+                throw new InternetnlAPIException("An error occurred calling the API:\n" + e.getMessage(), e);
             }
         }
         else if (status == Status.NO_CONTENT)
