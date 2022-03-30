@@ -2,6 +2,8 @@ package observatory.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.logging.FileHandler;
@@ -53,5 +55,25 @@ public class Logging
         Calendar calendar = Calendar.getInstance();
         return new File(folder,
             String.format("%s.%s.log", FILE_NAME_DATE_FORMAT.format(calendar.getTime()), name));
+    }
+
+    /**
+     * Log a stack trace.
+     * @param logger The logger.
+     * @param e The exception to log.
+     * @param msg An additional message or title.
+     */
+    public static void logStackTraceException(Logger logger, Exception e, String msg)
+    {
+        try
+        (
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+        )
+        {
+            pw.println(msg);
+            e.printStackTrace(pw);
+            logger.severe(sw.toString());
+        } catch (Exception ex) {}
     }
 }
