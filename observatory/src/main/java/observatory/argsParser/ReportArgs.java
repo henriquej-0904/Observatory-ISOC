@@ -33,9 +33,10 @@ public class ReportArgs
     public static final Option OPTION_TEMPLATE_FILE = new Option("--template", OptionType.SINGLE);
     public static final Option OPTION_DATE = new Option("--date", OptionType.SINGLE);
     public static final Option OPTION_FULL_REPORT = new Option("--full-report", OptionType.LIST);
+    public static final Option OPTION_NO_ORDER = new Option("--no-order", OptionType.LIST);
 
     private static final ParseOptions PARSE_OPTIONS = new ParseOptions(
-            Set.of(OPTION_TEMPLATE_FILE, OPTION_DATE, OPTION_FULL_REPORT));
+            Set.of(OPTION_TEMPLATE_FILE, OPTION_DATE, OPTION_FULL_REPORT, OPTION_NO_ORDER));
 
     private final RequestType type;
 
@@ -48,7 +49,7 @@ public class ReportArgs
 
     private File templateFile;
     private Calendar date;
-    private List<String> listsFullReport;
+    private List<String> listsFullReport, listsNoOrder;
 
 
     public ReportArgs(List<String> args) throws ParserException {
@@ -136,6 +137,16 @@ public class ReportArgs
                 List::of);
 
         return this.listsFullReport;
+    }
+
+    public List<String> getListsNoOrder()
+    {
+        if (this.listsNoOrder == null)
+            this.listsNoOrder = getOption(this.options, OPTION_NO_ORDER,
+                (Function<OptionValue, List<String>>) OptionValue::getList,
+                List::of);
+
+        return this.listsNoOrder;
     }
 
     //#endregion
