@@ -33,9 +33,10 @@ public class ReportArgs
     public static final Option OPTION_TEMPLATE_FILE = new Option("--template", OptionType.SINGLE);
     public static final Option OPTION_DATE = new Option("--date", OptionType.SINGLE);
     public static final Option OPTION_FULL_REPORT = new Option("--full-report", OptionType.LIST);
+    public static final Option OPTION_NO_ORDER_BY_INTNL = new Option("--no-order", OptionType.LIST);
 
     private static final ParseOptions PARSE_OPTIONS = new ParseOptions(
-            Set.of(OPTION_TEMPLATE_FILE, OPTION_DATE, OPTION_FULL_REPORT));
+            Set.of(OPTION_TEMPLATE_FILE, OPTION_DATE, OPTION_FULL_REPORT, OPTION_NO_ORDER_BY_INTNL));
 
     private final RequestType type;
 
@@ -48,7 +49,7 @@ public class ReportArgs
 
     private File templateFile;
     private Calendar date;
-    private List<String> listsFullReport;
+    private List<String> listsFullReport, listsNoOrderByIntnl;
 
 
     public ReportArgs(List<String> args) throws ParserException {
@@ -138,6 +139,16 @@ public class ReportArgs
         return this.listsFullReport;
     }
 
+    public List<String> getListsNoOrderByIntnl()
+    {
+        if (this.listsNoOrderByIntnl == null)
+            this.listsNoOrderByIntnl = getOption(this.options, OPTION_NO_ORDER_BY_INTNL,
+                (Function<OptionValue, List<String>>) OptionValue::getList,
+                List::of);
+
+        return this.listsNoOrderByIntnl;
+    }
+
     //#endregion
 
     private static Calendar parseDate(String date) throws ParserException
@@ -155,7 +166,8 @@ public class ReportArgs
 
     public static void printHelp() {
         System.out.println("-> report <web | mail> [options] <report-file-name.xlsx> <list of tests results file names>");
-        System.out.println("Create a report of the specified type based on the tests results provided.\n");
+        System.out.println("Create a report of the specified type based on the tests results provided.");
+        System.out.println("By default, the domains are sorted by the Internet.nl score in descending order.\n");
         System.out.println(
             "[options]:\n" +
 
@@ -167,6 +179,9 @@ public class ReportArgs
             "If not defined, defaults to the current date.\n" +
 
             "\t" + OPTION_FULL_REPORT.getName() + " list-name -> The report of the specified list name will have the full results. " +
+            "This option can be repeated.\n" + 
+
+            "\t" + OPTION_NO_ORDER_BY_INTNL.getName() + " list-name -> The report of the specified list name is not sorted by the Internet.nl score. Instead, the order is the same as when the domains were submitted for testing. " +
             "This option can be repeated.\n"
         );
     }

@@ -1,8 +1,12 @@
 package observatory.report;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -21,9 +25,10 @@ import observatory.internetnlAPI.config.InternetnlRequest;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.testResult.domain.Category;
 import observatory.internetnlAPI.config.testResult.domain.CustomTest;
-import observatory.internetnlAPI.config.testResult.domain.DomainResults;
+import observatory.internetnlAPI.config.testResult.domain.Report;
 import observatory.internetnlAPI.config.testResult.domain.ResultStatus;
 import observatory.internetnlAPI.config.testResult.domain.Results;
+import observatory.internetnlAPI.config.testResult.domain.Scoring;
 import observatory.internetnlAPI.config.testResult.domain.Test;
 import observatory.tests.ListTest;
 
@@ -105,7 +110,7 @@ public class ListReport
 
     private final ListTest listResults;
 
-    private boolean fullReport;
+    private boolean fullReport, orderByIntnl;
 
     /**
      * Creates a new instance based on a report template and the results of a list.
@@ -118,6 +123,7 @@ public class ListReport
         Objects.requireNonNull(reportTemplate);
         this.listResults = Objects.requireNonNull(listResults);
         this.fullReport = false;
+        this.orderByIntnl = true;
 
         Workbook workbook = reportTemplate.getWorkbook();
         this.report = workbook.cloneSheet(workbook.getSheetIndex(reportTemplate));
@@ -136,6 +142,23 @@ public class ListReport
      */
     public void setFullReport(boolean fullReport) {
         this.fullReport = fullReport;
+    }
+
+    /**
+     * Check if the list must be ordered by the Internet.nl classification (true by default).
+     * 
+     * @return true if the list must be ordered, false otherwise.
+     */
+    public boolean orderByIntnl() {
+        return orderByIntnl;
+    }
+
+    /**
+     * Set if the list must be ordered by the Internet.nl classification.
+     * @param orderByIntnl true if the list must be ordered, false otherwise.
+     */
+    public void setOrderByIntnl(boolean orderByIntnl) {
+        this.orderByIntnl = orderByIntnl;
     }
 
     /**
@@ -166,21 +189,35 @@ public class ListReport
     }
 
     /**
+     * Get the results of all the domains. If {@link #orderByIntnl()} is true then
+     * the result list is sorted by the Internet.nl score.
+     * 
+     * @return A list of results of all the domains.
+     */
+    private List<DomainResults> getDomainsResults()
+    {
+        Stream<DomainResults> stream = this.listResults.getResults().getDomains().entrySet().stream()
+            .map((entryDomainResult) ->
+                new DomainResults(entryDomainResult.getKey(), entryDomainResult.getValue()));
+
+        if (orderByIntnl())
+            stream = stream.sorted(DomainResults.ORDER_BY_INTNL_DESC);
+
+        return stream.collect(Collectors.toUnmodifiableList());
+    }
+
+    /**
      * Create a report for the specified List.
      * 
      * @return The generated List report as a Sheet.
      */
     public Sheet generateReport()
     {
-        Map<String, DomainResults> resultsByDomain = listResults.getResults().getDomains();
         int testedDomains = 0;
-
         int currentDomainRow = ADDRESS_FIRST_DOMAIN.getRow();
-        for (Entry<String, DomainResults> domainResultEntry : resultsByDomain.entrySet())
-        {
-            String domain = domainResultEntry.getKey();
-            DomainResults results = domainResultEntry.getValue();
 
+        for (DomainResults domainResults : getDomainsResults())
+        {
             Row row = report.createRow(currentDomainRow++);
             int currentColumn = ADDRESS_FIRST_DOMAIN.getColumn();
 
@@ -188,24 +225,24 @@ public class ListReport
             row.createCell(currentColumn++, CellType.STRING).setCellValue(listResults.getName());
 
             // set domain url
-            row.createCell(currentColumn++, CellType.STRING).setCellValue(domain);
+            row.createCell(currentColumn++, CellType.STRING).setCellValue(domainResults.getDomain());
 
             // check if domain was not tested
-            if (!results.getStatus().equals("ok"))
+            if (!domainResults.isOk())
                 continue;
 
             testedDomains++;
 
             // set score
-            row.createCell(currentColumn++, CellType.NUMERIC).setCellValue(results.getScoring().getPercentage());
+            row.createCell(currentColumn++, CellType.NUMERIC).setCellValue(domainResults.getScoring().getPercentage());
 
-            setDomainStatistics(results.getResults());
+            setDomainStatistics(domainResults.getResults());
 
             if (this.fullReport)
             {
                 // set report url
-                row.createCell(currentColumn++, CellType.STRING).setCellValue(results.getReport().getUrl());
-                setDomainResults(row, results.getResults());
+                row.createCell(currentColumn++, CellType.STRING).setCellValue(domainResults.getReport().getUrl());
+                setDomainResults(row, domainResults.getResults());
             }
         }
     
@@ -448,5 +485,122 @@ public class ListReport
                     return rule;
                 })
             .forEach((rule) -> formatting.addConditionalFormatting(regions, rule));
+    }
+
+    private static class DomainResults extends observatory.internetnlAPI.config.testResult.domain.DomainResults
+    {
+        /**
+         * Comparator that results in a descending comparation of the Internet.nl score.
+         */
+        public static Comparator<DomainResults> ORDER_BY_INTNL_DESC =
+            (arg1, arg2) ->
+            {
+                boolean ok1 = arg1.isOk();
+                boolean ok2 = arg2.isOk();
+
+                if (!ok1 && !ok2)
+                    return 0;
+
+                if (!ok1 && ok2)
+                    return 1;
+
+                if (ok1 && !ok2)
+                    return -1;
+
+                return Integer.compare(arg2.getScoring().getPercentage(),
+                    arg1.getScoring().getPercentage());
+            };
+
+        private final String domain;
+        private final observatory.internetnlAPI.config.testResult.domain.DomainResults results;
+        
+        /**
+         * @param domain
+         * @param results
+         */
+        public DomainResults(String domain, observatory.internetnlAPI.config.testResult.domain.DomainResults results) {
+            this.domain = domain;
+            this.results = results;
+        }
+
+        /**
+         * @return the domain name.
+         */
+        public String getDomain() {
+            return domain;
+        }
+
+        @Override
+        public Report getReport() {
+            return results.getReport();
+        }
+
+        @Override
+        public Results getResults() {
+            return results.getResults();
+        }
+
+        @Override
+        public Scoring getScoring() {
+            return results.getScoring();
+        }
+
+        @Override
+        public String getStatus() {
+            return results.getStatus();
+        }
+
+        /**
+         * 
+         * @return true if the test was completed successfully.
+         */
+        public boolean isOk()
+        {
+            return getStatus().equals("ok");
+        }
+
+        @Override
+        public void setReport(Report report) {
+            results.setReport(report);
+        }
+
+        @Override
+        public void setResults(Results results) {
+            this.results.setResults(results);
+        }
+
+        @Override
+        public void setScoring(Scoring scoring) {
+            results.setScoring(scoring);
+        }
+
+        @Override
+        public void setStatus(String status) {
+            results.setStatus(status);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null)
+                return false;
+
+            if (!(obj instanceof DomainResults))
+                return false;
+
+            DomainResults other = (DomainResults) obj;
+
+            return getDomain().equals(other.getDomain()) &&
+                results.equals(other.results);
+        }
+
+        @Override
+        public int hashCode() {
+            return getDomain().hashCode() ^ results.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Domain - %s, %s", getDomain(), results.toString());
+        }
     }
 }

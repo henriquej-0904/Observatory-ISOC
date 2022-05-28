@@ -18,7 +18,7 @@ mvn clean compile assembly:single
 ```
 De seguida, o programa pode ser executado através do comando:
 ```bash
-java -jar target/observatory-v1.2-jar-with-dependencies.jar
+java -jar target/observatory-v1.3-jar-with-dependencies.jar
 ```
 
 ## Instalação docker
@@ -34,4 +34,4 @@ O programa suporta 2 comandos:
 - test -> Execução dos testes a listas de domínios.
 - report -> Criação de um relatório baseado em resultados obtidos.
 
-Para mais informações sobre os comandos suportados e respectivas opções, deve-se consultar o ficheiro [programa-e-parametros.docx](https://github.com/henriquej-0904/Scripts-ISOC/blob/main/observatory/programa-e-parametros.docx).
+Para mais informações sobre os comandos suportados e respectivas opções, deve-se consultar o ficheiro [especificação.pdf](https://github.com/henriquej-0904/Scripts-ISOC/blob/main/observatory/documentation/especificação.pdf).

@@ -6,7 +6,7 @@
 
   <groupId>observatory</groupId>
   <artifactId>observatory</artifactId>
-  <version>v1.2</version>
+  <version>v1.3</version>
   <packaging>jar</packaging>
 
   <name>observatory</name>
