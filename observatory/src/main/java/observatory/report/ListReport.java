@@ -1,5 +1,6 @@
 package observatory.report;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Map.Entry;
@@ -21,9 +22,10 @@ import observatory.internetnlAPI.config.InternetnlRequest;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.testResult.domain.Category;
 import observatory.internetnlAPI.config.testResult.domain.CustomTest;
-import observatory.internetnlAPI.config.testResult.domain.DomainResults;
+import observatory.internetnlAPI.config.testResult.domain.Report;
 import observatory.internetnlAPI.config.testResult.domain.ResultStatus;
 import observatory.internetnlAPI.config.testResult.domain.Results;
+import observatory.internetnlAPI.config.testResult.domain.Scoring;
 import observatory.internetnlAPI.config.testResult.domain.Test;
 import observatory.tests.ListTest;
 
@@ -466,5 +468,99 @@ public class ListReport
                     return rule;
                 })
             .forEach((rule) -> formatting.addConditionalFormatting(regions, rule));
+    }
+
+    private static class DomainResults extends observatory.internetnlAPI.config.testResult.domain.DomainResults
+    {
+        /**
+         * Comparator that results in a descending comparation of the Internet.nl score.
+         */
+        public static Comparator<DomainResults> ORDER_BY_INTNL_DESC =
+            (arg1, arg2) ->
+                Integer.compare(arg2.getScoring().getPercentage(),
+                    arg1.getScoring().getPercentage());
+
+        private final String domain;
+        private final observatory.internetnlAPI.config.testResult.domain.DomainResults results;
+        
+        /**
+         * @param domain
+         * @param results
+         */
+        public DomainResults(String domain, observatory.internetnlAPI.config.testResult.domain.DomainResults results) {
+            this.domain = domain;
+            this.results = results;
+        }
+
+        /**
+         * @return the domain name.
+         */
+        public String getDomain() {
+            return domain;
+        }
+
+        @Override
+        public Report getReport() {
+            return results.getReport();
+        }
+
+        @Override
+        public Results getResults() {
+            return results.getResults();
+        }
+
+        @Override
+        public Scoring getScoring() {
+            return results.getScoring();
+        }
+
+        @Override
+        public String getStatus() {
+            return results.getStatus();
+        }
+
+        @Override
+        public void setReport(Report report) {
+            results.setReport(report);
+        }
+
+        @Override
+        public void setResults(Results results) {
+            this.results.setResults(results);
+        }
+
+        @Override
+        public void setScoring(Scoring scoring) {
+            results.setScoring(scoring);
+        }
+
+        @Override
+        public void setStatus(String status) {
+            results.setStatus(status);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null)
+                return false;
+
+            if (!(obj instanceof DomainResults))
+                return false;
+
+            DomainResults other = (DomainResults) obj;
+
+            return getDomain().equals(other.getDomain()) &&
+                results.equals(other.results);
+        }
+
+        @Override
+        public int hashCode() {
+            return getDomain().hashCode() ^ results.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Domain - %s, %s", getDomain(), results.toString());
+        }
     }
 }
