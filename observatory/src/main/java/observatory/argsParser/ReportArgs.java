@@ -166,7 +166,8 @@ public class ReportArgs
 
     public static void printHelp() {
         System.out.println("-> report <web | mail> [options] <report-file-name.xlsx> <list of tests results file names>");
-        System.out.println("Create a report of the specified type based on the tests results provided.\n");
+        System.out.println("Create a report of the specified type based on the tests results provided.");
+        System.out.println("By default, the domains are sorted by the Internet.nl score in descending order.\n");
         System.out.println(
             "[options]:\n" +
 
