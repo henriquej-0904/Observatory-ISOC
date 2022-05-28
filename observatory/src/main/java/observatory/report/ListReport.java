@@ -105,7 +105,7 @@ public class ListReport
 
     private final ListTest listResults;
 
-    private boolean fullReport;
+    private boolean fullReport, orderByIntnl;
 
     /**
      * Creates a new instance based on a report template and the results of a list.
@@ -118,6 +118,7 @@ public class ListReport
         Objects.requireNonNull(reportTemplate);
         this.listResults = Objects.requireNonNull(listResults);
         this.fullReport = false;
+        this.orderByIntnl = true;
 
         Workbook workbook = reportTemplate.getWorkbook();
         this.report = workbook.cloneSheet(workbook.getSheetIndex(reportTemplate));
@@ -136,6 +137,23 @@ public class ListReport
      */
     public void setFullReport(boolean fullReport) {
         this.fullReport = fullReport;
+    }
+
+    /**
+     * Check if the list must be ordered by the Internet.nl classification (true by default).
+     * 
+     * @return true if the list must be ordered, false otherwise.
+     */
+    public boolean orderByIntnl() {
+        return orderByIntnl;
+    }
+
+    /**
+     * Set if the list must be ordered by the Internet.nl classification.
+     * @param orderByIntnl true if the list must be ordered, false otherwise.
+     */
+    public void setOrderByIntnl(boolean orderByIntnl) {
+        this.orderByIntnl = orderByIntnl;
     }
 
     /**
