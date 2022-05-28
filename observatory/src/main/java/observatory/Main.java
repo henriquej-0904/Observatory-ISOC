@@ -34,6 +34,8 @@ import observatory.util.Util;
  */
 public class Main
 {
+    public static final String VERSION = "v1.3";
+
     private static final int EXIT_ERROR_STATUS = 1;
 
     private static final SimpleDateFormat DATE_FORMAT_PRINT_TEST_PROGRESS = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
@@ -72,7 +74,7 @@ public class Main
 
     private static void printHelp()
     {
-        System.out.println("Observatory commands:\n");
+        System.out.printf("Observatory %s commands:\n\n", VERSION);
         TestDomainsArgs.printHelp();
         System.out.println("-------------------------------------------------------------------------------------------------------\n");
         ReportArgs.printHelp();
