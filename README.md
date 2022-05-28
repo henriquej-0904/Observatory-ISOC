@@ -18,7 +18,7 @@ mvn clean compile assembly:single
 ```
 De seguida, o programa pode ser executado através do comando:
 ```bash
-java -jar target/observatory-v1.2-jar-with-dependencies.jar
+java -jar target/observatory-v1.3-jar-with-dependencies.jar
 ```
 
 ## Instalação docker
