@@ -1,9 +1,12 @@
 package observatory.report;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -186,21 +189,35 @@ public class ListReport
     }
 
     /**
+     * Get the results of all the domains. If {@link #orderByIntnl()} is true then
+     * the result list is sorted by the Internet.nl score.
+     * 
+     * @return A list of results of all the domains.
+     */
+    private List<DomainResults> getDomainsResults()
+    {
+        Stream<DomainResults> stream = this.listResults.getResults().getDomains().entrySet().stream()
+            .map((entryDomainResult) ->
+                new DomainResults(entryDomainResult.getKey(), entryDomainResult.getValue()));
+
+        if (orderByIntnl())
+            stream = stream.sorted(DomainResults.ORDER_BY_INTNL_DESC);
+
+        return stream.collect(Collectors.toUnmodifiableList());
+    }
+
+    /**
      * Create a report for the specified List.
      * 
      * @return The generated List report as a Sheet.
      */
     public Sheet generateReport()
     {
-        Map<String, DomainResults> resultsByDomain = listResults.getResults().getDomains();
         int testedDomains = 0;
-
         int currentDomainRow = ADDRESS_FIRST_DOMAIN.getRow();
-        for (Entry<String, DomainResults> domainResultEntry : resultsByDomain.entrySet())
-        {
-            String domain = domainResultEntry.getKey();
-            DomainResults results = domainResultEntry.getValue();
 
+        for (DomainResults domainResults : getDomainsResults())
+        {
             Row row = report.createRow(currentDomainRow++);
             int currentColumn = ADDRESS_FIRST_DOMAIN.getColumn();
 
@@ -208,24 +225,24 @@ public class ListReport
             row.createCell(currentColumn++, CellType.STRING).setCellValue(listResults.getName());
 
             // set domain url
-            row.createCell(currentColumn++, CellType.STRING).setCellValue(domain);
+            row.createCell(currentColumn++, CellType.STRING).setCellValue(domainResults.getDomain());
 
             // check if domain was not tested
-            if (!results.getStatus().equals("ok"))
+            if (!domainResults.isOk())
                 continue;
 
             testedDomains++;
 
             // set score
-            row.createCell(currentColumn++, CellType.NUMERIC).setCellValue(results.getScoring().getPercentage());
+            row.createCell(currentColumn++, CellType.NUMERIC).setCellValue(domainResults.getScoring().getPercentage());
 
-            setDomainStatistics(results.getResults());
+            setDomainStatistics(domainResults.getResults());
 
             if (this.fullReport)
             {
                 // set report url
-                row.createCell(currentColumn++, CellType.STRING).setCellValue(results.getReport().getUrl());
-                setDomainResults(row, results.getResults());
+                row.createCell(currentColumn++, CellType.STRING).setCellValue(domainResults.getReport().getUrl());
+                setDomainResults(row, domainResults.getResults());
             }
         }
     
@@ -477,8 +494,22 @@ public class ListReport
          */
         public static Comparator<DomainResults> ORDER_BY_INTNL_DESC =
             (arg1, arg2) ->
-                Integer.compare(arg2.getScoring().getPercentage(),
+            {
+                boolean ok1 = arg1.isOk();
+                boolean ok2 = arg2.isOk();
+
+                if (!ok1 && !ok2)
+                    return 0;
+
+                if (!ok1 && ok2)
+                    return 1;
+
+                if (ok1 && !ok2)
+                    return -1;
+
+                return Integer.compare(arg2.getScoring().getPercentage(),
                     arg1.getScoring().getPercentage());
+            };
 
         private final String domain;
         private final observatory.internetnlAPI.config.testResult.domain.DomainResults results;
@@ -517,6 +548,15 @@ public class ListReport
         @Override
         public String getStatus() {
             return results.getStatus();
+        }
+
+        /**
+         * 
+         * @return true if the test was completed successfully.
+         */
+        public boolean isOk()
+        {
+            return getStatus().equals("ok");
         }
 
         @Override
