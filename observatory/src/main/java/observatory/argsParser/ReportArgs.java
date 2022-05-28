@@ -178,6 +178,9 @@ public class ReportArgs
             "If not defined, defaults to the current date.\n" +
 
             "\t" + OPTION_FULL_REPORT.getName() + " list-name -> The report of the specified list name will have the full results. " +
+            "This option can be repeated.\n" + 
+
+            "\t" + OPTION_NO_ORDER_BY_INTNL.getName() + " list-name -> The report of the specified list name is not sorted by the Internet.nl score. Instead, the order is the same as when the domains were submitted for testing. " +
             "This option can be repeated.\n"
         );
     }
