@@ -157,6 +157,7 @@ public class Main
 
             report.setReportDate(args.getReportDate());
             report.setListsFullReport(Set.copyOf(args.getListsFullReport()));
+            report.setListsNoOrderByIntnl(Set.copyOf(args.getListsNoOrderByIntnl()));
 
             report.generateAndSaveReport(args.getReportFile());
             System.out.println("Report generated successfully.");

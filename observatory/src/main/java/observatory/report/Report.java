@@ -44,7 +44,7 @@ public class Report
 
     private final Set<ListTest> results;
 
-    private Set<String> listsFullReport;
+    private Set<String> listsFullReport, listsNoOrderByIntnl;
 
     private Calendar reportDate;
 
@@ -66,6 +66,7 @@ public class Report
         
         this.reportDate = Calendar.getInstance();
         this.listsFullReport = Set.of();
+        this.listsNoOrderByIntnl = Set.of();
     }
 
     /**
@@ -97,6 +98,7 @@ public class Report
             {
                 ListReport listReport = new ListReport(listResultsTemplate, listResults);
                 listReport.setFullReport(listsFullReport.contains(listResults.getName()));
+                listReport.setOrderByIntnl( ! listsNoOrderByIntnl.contains(listResults.getName()) );
                 listReport.generateReport();
             }
 
@@ -206,5 +208,30 @@ public class Report
      */
     public void setReportDate(Calendar reportDate) {
         this.reportDate = reportDate;
-    }    
+    }
+
+    /**
+     * @return A set of lists that must not be ordered by Internet.nl classification
+     *  (empty by default, i.e. all lists must be ordered).
+     */
+    public Set<String> getListsNoOrderByIntnl() {
+        return listsNoOrderByIntnl;
+    }
+
+    /**
+     * Set the lists that must not be ordered by Internet.nl classification.
+     * @param listsNoOrderByIntnl The set of lists.
+     * 
+     * @throws IllegalArgumentException if the results of the specified lists are not available.
+     */
+    public void setListsNoOrderByIntnl(Set<String> listsNoOrderByIntnl) throws IllegalArgumentException
+    {
+        if (listsNoOrderByIntnl == null || listsNoOrderByIntnl.isEmpty())
+        {
+            this.listsNoOrderByIntnl = Set.of();
+            return;
+        }
+
+        this.listsNoOrderByIntnl = checkLists(listsNoOrderByIntnl);
+    }
 }
