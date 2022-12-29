@@ -127,6 +127,7 @@
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
+          <finalName>observatory</finalName>
 					<archive>
             <manifest>
               <mainClass>observatory.Main</mainClass>
