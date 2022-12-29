@@ -10,22 +10,20 @@ O programa pode ser executado em dois modos: localmente ou utilizando a platafor
 
 ## Instalação local
 
-Para se proceder a uma instalação local, é necessário Java 11 (JDK) e Maven para compilar.
+Para se proceder a uma instalação local, é necessário Java 17 (JDK) e Maven para compilar.
 
-Na pasta [observatory](https://github.com/henriquej-0904/Scripts-ISOC/tree/main/observatory), deve-se executar o seguinte comando para compilar o programa:
+Na pasta [observatory](./observatory), deve-se executar o seguinte comando para compilar o programa:
 ```bash
 mvn clean compile assembly:single
 ```
 De seguida, o programa pode ser executado através do comando:
 ```bash
-java -jar target/observatory-v1.3-jar-with-dependencies.jar
+java -jar target/observatory-jar-with-dependencies.jar
 ```
 
 ## Instalação docker
 
-Em 1º lugar deve-se criar a imagem docker através do script: [buildDocker-sh](https://github.com/henriquej-0904/Scripts-ISOC/blob/main/observatory/buildDocker.sh).
-
-De seguida, o programa pode ser executado através do script: [runDocker.sh](https://github.com/henriquej-0904/Scripts-ISOC/blob/main/observatory/runDocker.sh).
+O script [runDocker.sh](./observatory/runDocker.sh) permite executar a imagem mais recente (latest) disponível no [Docker Hub](https://hub.docker.com/r/henriquej0904/observatory-isoc).
 
 
 ## Instruções de utilização
@@ -34,4 +32,4 @@ O programa suporta 2 comandos:
 - test -> Execução dos testes a listas de domínios.
 - report -> Criação de um relatório baseado em resultados obtidos.
 
-Para mais informações sobre os comandos suportados e respectivas opções, deve-se consultar o ficheiro [especificação.pdf](https://github.com/henriquej-0904/Scripts-ISOC/blob/main/observatory/documentation/especificação.pdf).
+Para mais informações sobre os comandos suportados e respectivas opções, deve-se consultar o ficheiro [especificação.pdf](./observatory/documentation/especificação.pdf).
