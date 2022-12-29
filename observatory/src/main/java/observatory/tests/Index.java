@@ -8,11 +8,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import observatory.util.InvalidFormatException;
+import observatory.util.JSONconfig;
 
 /**
  * Represents an index that maps a list name to a test id.
@@ -27,13 +28,13 @@ public class Index implements Map<String, String>
     
     private final File indexFile;
 
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
 
     /**
      * 
      * @param index
      */
-    private Index(Map<String, String> index, File indexFile, ObjectMapper mapper) {
+    private Index(Map<String, String> index, File indexFile, JsonMapper mapper) {
         this.index = index;
         this.indexFile = indexFile;
         this.mapper = mapper;
@@ -50,7 +51,7 @@ public class Index implements Map<String, String>
         TypeFactory typeFactory = TypeFactory.defaultInstance();
         MapType type = typeFactory.constructMapType(HashMap.class, String.class, String.class);
 
-        ObjectMapper mapper = new ObjectMapper();
+        JsonMapper mapper = JSONconfig.getJSONmapper();
         
         try
         {
@@ -71,7 +72,7 @@ public class Index implements Map<String, String>
      */
     public static Index empty(File indexFile)
     {
-        return new Index(new HashMap<>(), indexFile, new ObjectMapper());
+        return new Index(new HashMap<>(), indexFile, JSONconfig.getJSONmapper());
     }
 
     /**

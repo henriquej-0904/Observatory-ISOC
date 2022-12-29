@@ -2,6 +2,7 @@ package observatory.internetnlAPI.config.testResult.domain;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,6 +60,11 @@ public enum Category
      */
     public RequestType getType() {
         return type;
+    }
+
+    public static Optional<Category> getEnumValue(String value)
+    {
+        return Stream.of(values()).filter(c -> c.getCategory().equalsIgnoreCase(value)).findFirst();
     }
     
     public static List<Category> values(RequestType type)
