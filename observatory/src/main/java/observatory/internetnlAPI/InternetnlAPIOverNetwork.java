@@ -5,7 +5,7 @@ import java.net.URI;
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -20,6 +20,7 @@ import jakarta.ws.rs.core.Response.Status;
 import observatory.internetnlAPI.config.RequestType;
 import observatory.internetnlAPI.config.TestInfo;
 import observatory.internetnlAPI.config.testResult.TestResult;
+import observatory.util.JSONconfig;
 import observatory.util.restResult.Result;
 
 /**
@@ -40,7 +41,7 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
     
     private Pair<String, String> authHeader;
 
-    private ObjectMapper mapper;
+    private JsonMapper mapper;
 
 
     /**
@@ -61,7 +62,7 @@ public class InternetnlAPIOverNetwork implements InternetnlAPI
             "Basic " +
             Base64.getEncoder().encodeToString((username + ":" + password).getBytes()));
 
-        this.mapper = new ObjectMapper();
+        this.mapper = JSONconfig.getJSONmapper();
     }
 
     @Override

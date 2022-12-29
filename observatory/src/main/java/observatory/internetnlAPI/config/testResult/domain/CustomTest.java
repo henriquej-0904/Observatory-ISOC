@@ -1,6 +1,8 @@
 package observatory.internetnlAPI.config.testResult.domain;
 
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -72,5 +74,10 @@ public enum CustomTest
     public ResultStatus convertToResult(Object result)
     {
         return convertToResultFunc.apply(result);
+    }
+
+    public static Optional<CustomTest> getEnumValue(String value)
+    {
+        return Stream.of(values()).filter(t -> t.getTest().equalsIgnoreCase(value)).findFirst();
     }
 }

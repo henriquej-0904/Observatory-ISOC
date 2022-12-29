@@ -299,12 +299,12 @@ public class ListReport
         CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
         int currentColumn = categoryAddress.getColumn();
 
-        ResultStatus result = results.getCategories().get(category).getStatus();
+        ResultStatus result = results.getCategoriesEnum().get(category).getStatus();
         incCell(result, currentColumn++);
 
         for (Test test : Test.values(category))
         {
-            result = results.getTests().get(test).getStatus();
+            result = results.getTestsEnum().get(test).getStatus();
             incCell(result, currentColumn++);
         }
     }
@@ -317,7 +317,7 @@ public class ListReport
     {
         RequestType type = getType();
 
-        for (Entry<CustomTest, Object> test : results.getCustom().entrySet())
+        for (Entry<CustomTest, Object> test : results.getCustomEnum().entrySet())
         {
             CustomTest customTest = test.getKey();
             ResultStatus result = customTest.convertToResult(test.getValue());
@@ -406,7 +406,7 @@ public class ListReport
 
         Map<CustomTest, CellAddress> addresses = ADDRESS_CUSTOM_FIELD.get(type);
 
-        for (Entry<CustomTest, Object> test : results.getCustom().entrySet())
+        for (Entry<CustomTest, Object> test : results.getCustomEnum().entrySet())
         {
             CustomTest customTest = test.getKey();
             ResultStatus result = customTest.convertToResult(test.getValue());
@@ -427,12 +427,12 @@ public class ListReport
         CellAddress categoryAddress = ADDRESS_CATEGORY.get(category);
         int currentColumn = categoryAddress.getColumn();
 
-        ResultStatus result = results.getCategories().get(category).getStatus();
+        ResultStatus result = results.getCategoriesEnum().get(category).getStatus();
         setDomainResult(domainRow, currentColumn++, result);
 
         for (Test test : Test.values(category))
         {
-            result = results.getTests().get(test).getStatus();
+            result = results.getTestsEnum().get(test).getStatus();
             setDomainResult(domainRow, currentColumn++, result);
         }
     }
@@ -492,7 +492,7 @@ public class ListReport
         /**
          * Comparator that results in a descending comparation of the Internet.nl score.
          */
-        public static Comparator<DomainResults> ORDER_BY_INTNL_DESC =
+        public final static Comparator<DomainResults> ORDER_BY_INTNL_DESC =
             (arg1, arg2) ->
             {
                 boolean ok1 = arg1.isOk();

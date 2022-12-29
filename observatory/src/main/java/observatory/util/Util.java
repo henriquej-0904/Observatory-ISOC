@@ -3,9 +3,14 @@ package observatory.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -147,5 +152,50 @@ public class Util
             );
         
         return domainsList.toArray(new String[0]);
+    }
+
+    /**
+     * Convert a Map of String-value to Enum-value.
+     * If some keys (String) are not mapped to the specified Enum class then
+     * those values will not be present in the returned EnumMap.
+     * 
+     * @param <K> The Map Enum key type
+     * @param <V> The Map value type
+     * @param map A map to be converted in EnumMap
+     * @return An EnumMap of K, V
+     */
+    public static <K extends Enum<K>, V> EnumMap<K, V> toEnumMap(
+        final Map<String, V> map, final Class<K> enumType)
+    {
+        var constants = EnumSet.allOf(enumType);
+        return toEnumMap(map,
+            (
+                s ->
+                    constants.stream().filter(c -> c.name().equalsIgnoreCase(s)).findFirst()
+            ) , enumType);
+    }
+
+    /**
+     * Convert a Map of String-value to Enum-value.
+     * If some keys (String) are not mapped to the specified Enum class then
+     * those values will not be present in the returned EnumMap.
+     * 
+     * @param <K> The Map Enum key type
+     * @param <V> The Map value type
+     * @param map A map to be converted in EnumMap
+     * @return An EnumMap of K, V
+     */
+    public static <K extends Enum<K>, V> EnumMap<K, V> toEnumMap(
+        Map<String, V> map, Function<String, Optional<K>> getEnumValue, Class<K> enumType)
+    {
+        final EnumMap<K, V> result = new EnumMap<>(enumType);
+
+        map.forEach((s, v) -> {
+            final var k = getEnumValue.apply(s);
+            if (k.isPresent())
+                result.put(k.get(), v);
+        });
+
+        return result;
     }
 }
