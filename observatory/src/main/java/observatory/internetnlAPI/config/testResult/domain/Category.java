@@ -21,11 +21,13 @@ public enum Category
     WEB_DNSSEC ("web_dnssec", "Signed domain name (DNSSEC)", RequestType.WEB),
     WEB_HTTPS ("web_https", "Secure connection (HTTPS)", RequestType.WEB),
     WEB_APPSECPRIV ("web_appsecpriv", "HTTP security headers", RequestType.WEB),
+    WEB_RPKI("web_rpki", "Route authorisation (RPKI)", RequestType.WEB),
 
     MAIL_IPV6 ("mail_ipv6", "Modern address (IPv6)", RequestType.MAIL),
     MAIL_DNSSEC ("mail_dnssec", "Signed domain name (DNSSEC)", RequestType.MAIL),
     MAIL_AUTH ("mail_auth", "Authenticity marks against phishing (DMARC, DKIM en SPF)", RequestType.MAIL),
-    MAIL_STARTTLS ("mail_starttls", "Secure mail server connection (STARTTLS and DANE)", RequestType.MAIL);
+    MAIL_STARTTLS ("mail_starttls", "Secure mail server connection (STARTTLS and DANE)", RequestType.MAIL),
+    MAIL_RPKI("mail_rpki", "Route authorisation (RPKI)", RequestType.MAIL);
 
     private static Map<RequestType, List<Category>> valuesByType;
 

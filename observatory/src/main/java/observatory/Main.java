@@ -34,7 +34,7 @@ import observatory.util.Util;
  */
 public class Main
 {
-    public static final String VERSION = "v1.3.1";
+    public static final String VERSION = "v1.4";
 
     private static final int EXIT_ERROR_STATUS = 1;
 

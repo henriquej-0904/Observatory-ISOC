@@ -63,25 +63,27 @@ public class ListReport
             Category.WEB_DNSSEC, new CellAddress("M2"),
             Category.WEB_HTTPS, new CellAddress("Q2"),
             Category.WEB_APPSECPRIV, new CellAddress("AM2"),
+            Category.WEB_RPKI, new CellAddress("AT2"),
 
             Category.MAIL_IPV6, new CellAddress("F2"),
             Category.MAIL_DNSSEC, new CellAddress("L2"),
             Category.MAIL_AUTH, new CellAddress("R2"),
-            Category.MAIL_STARTTLS, new CellAddress("Y2")
+            Category.MAIL_STARTTLS, new CellAddress("Y2"),
+            Category.MAIL_RPKI, new CellAddress("AR2")
         );
 
     private static final Map<RequestType, Map<CustomTest, CellAddress>> ADDRESS_CUSTOM_FIELD =
         Map.of
         (
             RequestType.WEB,
-            Map.of(CustomTest.TLS_1_3_SUPPORT, new CellAddress("AS3")),
+            Map.of(CustomTest.TLS_1_3_SUPPORT, new CellAddress("AZ3")),
 
             RequestType.MAIL,
             Map.of
             (
-                CustomTest.TLS_1_3_SUPPORT, new CellAddress("AR3"),
-                CustomTest.MAIL_SENDING_DOMAIN, new CellAddress("AS3"),
-                CustomTest.MAIL_SERVER_TESTABLE, new CellAddress("AT3")
+                CustomTest.TLS_1_3_SUPPORT, new CellAddress("AZ3"),
+                CustomTest.MAIL_SENDING_DOMAIN, new CellAddress("BA3"),
+                CustomTest.MAIL_SERVER_TESTABLE, new CellAddress("BB3")
             )
         );
 
@@ -101,8 +103,8 @@ public class ListReport
 
     private static final Map<RequestType, Integer> LAST_RESULT_COLUMN =
         Map.of(
-            RequestType.WEB, new CellAddress("AS1").getColumn(),
-            RequestType.MAIL, new CellAddress("AT1").getColumn()
+            RequestType.WEB, new CellAddress("AZ1").getColumn(),
+            RequestType.MAIL, new CellAddress("BB1").getColumn()
         );
 
     

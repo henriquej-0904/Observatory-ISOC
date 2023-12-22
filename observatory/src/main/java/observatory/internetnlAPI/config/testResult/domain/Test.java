@@ -54,6 +54,12 @@ public enum Test
     WEB_APPSECPRIV_X_CONTENT_TYPE_OPTIONS ("web_appsecpriv_x_content_type_options", "X-Content-Type-Options", RequestType.WEB, Category.WEB_APPSECPRIV),
     WEB_APPSECPRIV_CSP ("web_appsecpriv_csp", "Content-Security-Policy existence", RequestType.WEB, Category.WEB_APPSECPRIV),
     WEB_APPSECPRIV_REFERRER_POLICY ("web_appsecpriv_referrer_policy", "Referrer-Policy existence", RequestType.WEB, Category.WEB_APPSECPRIV),
+    WEB_APPSECPRIV_SECURITY_TXT("web_appsecpriv_securitytxt", "security.txt", RequestType.WEB, Category.WEB_APPSECPRIV),
+
+    WEB_RPKI_NS_EXISTS("web_ns_rpki_exists", "Route Origin Authorisation existence for name servers", RequestType.WEB, Category.WEB_RPKI),
+    WEB_RPKI_NS_VALID("web_ns_rpki_valid", "Route Origin Authorisation valid for name servers", RequestType.WEB, Category.WEB_RPKI),
+    WEB_RPKI_EXISTS("web_rpki_exists", "Route Origin Authorisation existence for web servers", RequestType.WEB, Category.WEB_RPKI),
+    WEB_RPKI_VALID("web_rpki_valid", "Route Origin Authorisation valid for web servers", RequestType.WEB, Category.WEB_RPKI),
 
     //#endregion
 
@@ -91,8 +97,14 @@ public enum Test
     MAIL_STARTTLS_CERT_DOMAIN ("mail_starttls_cert_domain", "Domain name on certificate", RequestType.MAIL, Category.MAIL_STARTTLS),
     MAIL_STARTTLS_DANE_EXIST ("mail_starttls_dane_exist", "DANE existence", RequestType.MAIL, Category.MAIL_STARTTLS),
     MAIL_STARTTLS_DANE_VALID ("mail_starttls_dane_valid", "DANE validity", RequestType.MAIL, Category.MAIL_STARTTLS),
-    MAIL_STARTTLS_DANE_ROLLOVER ("mail_starttls_dane_rollover", "DANE rollover scheme", RequestType.MAIL, Category.MAIL_STARTTLS);
+    MAIL_STARTTLS_DANE_ROLLOVER ("mail_starttls_dane_rollover", "DANE rollover scheme", RequestType.MAIL, Category.MAIL_STARTTLS),
 
+    MAIL_RPKI_NS_EXISTS("mail_ns_rpki_exists", "Route Origin Authorisation existence for name servers of domain", RequestType.MAIL, Category.MAIL_RPKI),
+    MAIL_RPKI_NS_VALID("mail_ns_rpki_valid", "Route Origin Authorisation valid for name servers of domain", RequestType.MAIL, Category.MAIL_RPKI),
+    MAIL_RPKI_MX_NS_EXISTS("mail_mx_ns_rpki_exists", "Route Origin Authorisation existence for name servers of mail server(s)", RequestType.MAIL, Category.MAIL_RPKI),
+    MAIL_RPKI_MX_NS_VALID("mail_mx_ns_rpki_valid", "Route Origin Authorisation valid for name servers of mail server(s)", RequestType.MAIL, Category.MAIL_RPKI),
+    MAIL_RPKI_EXISTS("mail_rpki_exists", "Route Origin Authorisation existence for mail server(s)", RequestType.MAIL, Category.MAIL_RPKI),
+    MAIL_RPKI_VALID("mail_rpki_valid", "Route Origin Authorisation valid for mail server(s)", RequestType.MAIL, Category.MAIL_RPKI);
 
     //#endregion
 
