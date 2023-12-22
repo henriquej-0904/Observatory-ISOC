@@ -1,4 +1,4 @@
-FROM openjdk:19-slim
+FROM openjdk:17-slim
 
 # COPY observatory
 WORKDIR /observatory
