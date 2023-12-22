@@ -10,7 +10,7 @@ O programa pode ser executado em dois modos: localmente ou utilizando a platafor
 
 ## Instalação local
 
-Para se proceder a uma instalação local, é necessário Java 17 (JDK) e Maven para compilar.
+Para se proceder a uma instalação local, é necessário Java 19 (JDK) e Maven para compilar.
 
 Na pasta [observatory](./observatory), deve-se executar o seguinte comando para compilar o programa:
 ```bash
