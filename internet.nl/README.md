@@ -72,7 +72,7 @@ EOF
 
 ## Iniciar/Parar serviço
 
-Para facilidade, foram criados scripts que permitem iniciar (`start-internetnl.sh`) e parar o serviço (`stop-internetnl.sh`).
+Para facilidade, foram criados scripts que permitem iniciar [start-internetnl.sh](https://github.com/henriquej-0904/Observatory-ISOC/blob/main/internet.nl/start-internetnl.sh) e parar o serviço [stop-internetnl.sh](https://github.com/henriquej-0904/Observatory-ISOC/blob/main/internet.nl/stop-internetnl.sh).
 
 Depois de o serviço ser iniciado, o seguinte comando deve ser executado para criar os índices necessários na base de dados:
 ```bash
