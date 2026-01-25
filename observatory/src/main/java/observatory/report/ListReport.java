@@ -513,6 +513,8 @@ public class ListReport
                     arg1.getScoring().getPercentage());
             };
 
+        private final static String NULL_STATUS = "null";
+
         private final String domain;
         private final observatory.internetnlAPI.config.testResult.domain.DomainResults results;
         
@@ -523,6 +525,15 @@ public class ListReport
         public DomainResults(String domain, observatory.internetnlAPI.config.testResult.domain.DomainResults results) {
             this.domain = domain;
             this.results = results;
+        }
+
+        /**
+         * Check if the test completed successfully.
+         * @return true if the test was completed successfully.
+         */
+        public boolean isOk()
+        {
+            return getStatus().equals("ok");
         }
 
         /**
@@ -549,16 +560,7 @@ public class ListReport
 
         @Override
         public String getStatus() {
-            return results.getStatus();
-        }
-
-        /**
-         * 
-         * @return true if the test was completed successfully.
-         */
-        public boolean isOk()
-        {
-            return getStatus().equals("ok");
+            return results != null && results.getStatus() != null ? results.getStatus() : NULL_STATUS;
         }
 
         @Override
@@ -592,17 +594,23 @@ public class ListReport
             DomainResults other = (DomainResults) obj;
 
             return getDomain().equals(other.getDomain()) &&
-                results.equals(other.results);
+                (
+                    (results == null && other.results == null) ||
+                    results.equals(other.results)
+                );
         }
 
         @Override
         public int hashCode() {
-            return getDomain().hashCode() ^ results.hashCode();
+            int hash = getDomain().hashCode();
+            if (results != null)
+                hash = hash ^ results.hashCode();
+            return hash;
         }
 
         @Override
         public String toString() {
-            return String.format("Domain - %s, %s", getDomain(), results.toString());
+            return String.format("Domain - %s, %s", getDomain(), results != null ? results.toString() : "null");
         }
     }
 }

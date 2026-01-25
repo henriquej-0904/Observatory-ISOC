@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
@@ -27,6 +28,7 @@ import observatory.tests.Index;
 import observatory.tests.ListTest;
 import observatory.tests.TestDomains;
 import observatory.util.InvalidFormatException;
+import observatory.util.Logging;
 import observatory.util.Util;
 
 /**
@@ -34,7 +36,7 @@ import observatory.util.Util;
  */
 public class Main
 {
-    public static final String VERSION = "v1.4";
+    public static final String VERSION = "v1.4.1";
 
     private static final int EXIT_ERROR_STATUS = 1;
 
@@ -151,7 +153,7 @@ public class Main
     //#region Report
 
     private static void report(ReportArgs args)
-    {        
+    {
         try
         {
             Report report = new Report(args.getType(), args.getTemplateFile(),
@@ -161,8 +163,13 @@ public class Main
             report.setListsFullReport(Set.copyOf(args.getListsFullReport()));
             report.setListsNoOrderByIntnl(Set.copyOf(args.getListsNoOrderByIntnl()));
 
-            report.generateAndSaveReport(args.getReportFile());
-            System.out.println("Report generated successfully.");
+            if (report.generateAndSaveReport(args.getReportFile()))
+                System.out.println("Report generated successfully.");
+            else
+            {
+                printReportErrors(report.processingErrors);
+                System.exit(EXIT_ERROR_STATUS);
+            } 
         }
         catch (Exception e) {
             System.err.println(e.getMessage());
@@ -182,6 +189,26 @@ public class Main
         }
 
         return result;
+    }
+
+    private static void printReportErrors(List<Exception> errors)
+    {
+        final File errorFile = Logging.createLogFileName("report_error_details");
+        try (PrintStream errorFilePrint = new PrintStream(errorFile))
+        {
+            printReportErrors(errors, errorFilePrint);
+            System.err.printf("Failed to generate a complete report, see error log '%s' for details.\n",
+                errorFile.getName()
+            );
+        } catch (Exception e) {
+            printReportErrors(errors, System.err);
+        }
+    }
+
+    private static void printReportErrors(List<Exception> errors, PrintStream p)
+    {
+        p.println("Failed to generate a complete report due to the following errors.\n");
+        errors.forEach(e -> { e.printStackTrace(p); p.println(); });
     }
 
     //#endregion

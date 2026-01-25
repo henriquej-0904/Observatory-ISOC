@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,6 +46,8 @@ public class Report
 
     private final Set<ListTest> results;
 
+    public final List<Exception> processingErrors;
+
     private Set<String> listsFullReport, listsNoOrderByIntnl;
 
     private Calendar reportDate;
@@ -67,19 +71,23 @@ public class Report
         this.reportDate = Calendar.getInstance();
         this.listsFullReport = Set.of();
         this.listsNoOrderByIntnl = Set.of();
+        this.processingErrors = new ArrayList<>();
     }
 
     /**
      * Generate a report based on the results provided for the specified type and saves it.
+     * Return true if success or false if there were errors during processing.
+     * Errors can be accessed at {@link #processingErrors}.
      * 
      * @param report - The location to save the report.
      * @throws IOException
      * @throws InvalidTemplateException
      */
-    public void generateAndSaveReport(File report) throws IOException, InvalidTemplateException
+    public boolean generateAndSaveReport(File report) throws IOException, InvalidTemplateException
     {
         Objects.requireNonNull(report);
 
+        boolean success = true;
         try
         (
             InputStream input = new FileInputStream(this.templateWorkbookFile);
@@ -96,10 +104,16 @@ public class Report
             // Generate List Reports.
             for (ListTest listResults : this.results)
             {
-                ListReport listReport = new ListReport(listResultsTemplate, listResults);
-                listReport.setFullReport(listsFullReport.contains(listResults.getName()));
-                listReport.setOrderByIntnl( ! listsNoOrderByIntnl.contains(listResults.getName()) );
-                listReport.generateReport();
+                try {
+                    ListReport listReport = new ListReport(listResultsTemplate, listResults);
+                    listReport.setFullReport(listsFullReport.contains(listResults.getName()));
+                    listReport.setOrderByIntnl( ! listsNoOrderByIntnl.contains(listResults.getName()) );
+                    listReport.generateReport();
+                } catch (Exception e) {
+                    success = false;
+                    this.processingErrors.add(new Exception(String.format("Failed to process results for List '%s' -> %s",
+                        listResults.getName(), e.getMessage()), e));
+                }
             }
 
             // Remove list template from the final report.
@@ -118,6 +132,8 @@ public class Report
         {
             throw new InvalidTemplateException(e);
         }
+
+        return success;
     }
 
     /**

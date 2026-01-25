@@ -58,6 +58,18 @@ public class Logging
     }
 
     /**
+     * Create a log file name in the current directory.
+     * 
+     * @param name - The name of the log file.
+     * @return The generated log file.
+     */
+    public static File createLogFileName(String name)
+    {
+        Calendar calendar = Calendar.getInstance();
+        return new File(String.format("%s.%s.log", FILE_NAME_DATE_FORMAT.format(calendar.getTime()), name));
+    }
+
+    /**
      * Log a stack trace.
      * @param logger The logger.
      * @param e The exception to log.
